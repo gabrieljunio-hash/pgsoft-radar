@@ -1,5 +1,10 @@
 name: Coletar dados públicos PG Soft
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/collect.yml"
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
