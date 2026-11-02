@@ -8,12 +8,17 @@ from datetime import datetime, timezone, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.parse import urljoin
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 HISTORY = DATA / "history.json"
 OUTPUT = DATA / "wins.json"
-SOURCE = {"id": "gigabet.com.br", "name": "GigaBet", "url": "https://gigabet.com.br/user/wallet"}
+SOURCES = [
+    {"id": "gigabet.com.br", "name": "GigaBet", "url": "https://gigabet.com.br/user/wallet"},
+    {"id": "pixway.bet", "name": "Pixway", "url": "https://pixway.bet/user/wallet"},
+    {"id": "betboa.net.br", "name": "Betboa", "url": "https://betboa.net.br/user/wallet"},
+]
 BR_TZ = timezone(timedelta(hours=-3))
 AMOUNT_RE = re.compile(r"R?\$?\s*([0-9.]+(?:,[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)")
 
@@ -80,7 +85,8 @@ class TableParser(HTMLParser):
             self.row = None
             self.cell = None
 
-def parse_rows(raw, known_games, now=None):
+def parse_rows(raw, known_games, now=None, source=None):
+    source = source or SOURCES[0]
     parser = TableParser()
     parser.feed(raw)
     records = []
@@ -108,9 +114,9 @@ def parse_rows(raw, known_games, now=None):
         occurred = parse_time(cells[2], now)
         if not occurred:
             continue
-        image = next((c["image"] for c in row if c["image"]), "")
+        image = next((urljoin(source["url"], c["image"]) for c in row if c["image"]), "")
         event = {
-            "source": SOURCE["id"], "source_name": SOURCE["name"],
+            "source": source["id"], "source_name": source["name"],
             "game": game, "bet": bet, "payout": payout,
             "multiplier": round(max(mult, ratio), 2),
             "occurred_at": occurred, "image": image,
@@ -124,13 +130,25 @@ def main():
     DATA.mkdir(exist_ok=True)
     history = json.loads(HISTORY.read_text(encoding="utf-8"))
     known_games = {norm(name): name for snap in history.get("snapshots", []) for name in snap.get("games", {})}
-    req = Request(SOURCE["url"], headers={
-        "User-Agent": "Mozilla/5.0 (compatible; PGSoftRadar/1.0)",
-        "Accept-Language": "pt-BR,pt;q=0.9",
-    })
-    with urlopen(req, timeout=30) as response:
-        raw = response.read().decode("utf-8", "replace")
-    found = parse_rows(raw, known_games)
+    found = []
+    checked = []
+    for source in SOURCES:
+        try:
+            req = Request(source["url"], headers={
+                "User-Agent": "Mozilla/5.0 (compatible; PGSoftRadar/1.0)",
+                "Accept-Language": "pt-BR,pt;q=0.9",
+            })
+            with urlopen(req, timeout=30) as response:
+                raw = response.read().decode("utf-8", "replace")
+            rows = parse_rows(raw, known_games, source=source)
+            found.extend(rows)
+            checked.append({"id": source["id"], "name": source["name"], "status": "ok", "events": len(rows)})
+            print(f"OK {source['name']}: {len(rows)} pagamentos PG Soft >=50x")
+        except Exception as exc:
+            checked.append({"id": source["id"], "name": source["name"], "status": "error", "error": str(exc)})
+            print(f"FALHA {source['name']}: {exc}", file=sys.stderr)
+    if not any(x["status"] == "ok" for x in checked):
+        raise RuntimeError("Nenhum feed de pagamentos pôde ser consultado.")
     old = json.loads(OUTPUT.read_text(encoding="utf-8")) if OUTPUT.exists() else {"events": []}
     by_id = {e["id"]: e for e in old.get("events", [])}
     for event in found:
@@ -142,12 +160,12 @@ def main():
         "schema_version": 1,
         "notice": "Pagamentos individuais exibidos publicamente pela fonte; somente multiplicadores >=50x. Dados observacionais, sem capacidade preditiva.",
         "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "sources": [{"id": SOURCE["id"], "name": SOURCE["name"], "url": SOURCE["url"]}],
+        "sources": checked,
         "events": events,
     }, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"Feed GigaBet: {len(found)} pagamentos PG Soft >=50x reconhecidos; {len(events)} eventos únicos no histórico.")
+    print(f"Feeds individuais: {len(found)} pagamentos PG Soft >=50x reconhecidos; {len(events)} eventos únicos no histórico.")
     if not found:
-        print("AVISO: nenhum evento elegível reconhecido nesta coleta; verificar estrutura do feed e catálogo PG Soft.", file=sys.stderr)
+        print("AVISO: nenhum pagamento PG Soft >=50x encontrado nesta coleta.", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
