@@ -64,6 +64,8 @@ function render(){
   rows.sort((a,b)=>b.delta-a.delta);
   $("total-wins").textContent=money(rows.reduce((sum,row)=>sum+row.delta,0));
   $("total-label").textContent=hours===-1?"SOMA DOS ACUMULADOS":"SOMA DAS VARIAÇÕES";
+  $("games-label").textContent=hours===-1?"JOGOS NO RANKING":"JOGOS COM AUMENTO";
+  $("sites-label").textContent=hours===-1?"SITES NO RANKING":"SITES COM AUMENTO";
   $("ranking-label").textContent=hours===-1?"Maiores acumulados publicados":"Maiores aumentos observados";
   $("value-heading").textContent=hours===-1?"VALOR PUBLICADO":"VARIAÇÃO";
   $("games-count").textContent=String(new Set(rows.map(r=>gameKey(r.game))).size);
