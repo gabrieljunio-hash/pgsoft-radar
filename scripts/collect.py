@@ -16,6 +16,9 @@ SOURCES = [
     {"id": "jogou.io", "name": "Jogou", "url": "https://jogou.io/cassino/pg-soft", "layout": "before"},
     {"id": "cassino365.bet", "name": "Cassino10", "url": "https://www.cassino365.bet/cassino/pg-soft", "layout": "before"},
     {"id": "cazebetbr.com", "name": "Cazé Bet", "url": "https://cazebetbr.com/cassino?lista=pg-soft", "layout": "after"},
+    {"id": "tokyoclubbet.com", "name": "Tokyo Club", "url": "https://tokyoclubbet.com/cassino/pg-soft", "layout": "before"},
+    {"id": "betz1nha.com", "name": "Betzinha", "url": "https://betz1nha.com/cassino/pg-soft", "layout": "before"},
+    {"id": "jogofacil.net.br", "name": "Jogo Fácil", "url": "https://jogofacil.net.br/cassino/pg-soft", "layout": "before"},
 ]
 AMOUNT = r"([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?|[0-9]+(?:,[0-9]{2})?)"
 
