@@ -76,7 +76,7 @@ def main():
     history = load_history(history_path)
     snapshots = history.get("snapshots", [])
     successes, failures = [], []
-    print(f"Iniciando monitoramento de {len(SOURCES)} fontes PG Soft.")
+    print(f"Iniciando monitoramento de {len(SOURCES)} fontes PG Soft: " + ", ".join(s["name"] for s in SOURCES))
     for source in SOURCES:
         try:
             games = fetch_source(source)
