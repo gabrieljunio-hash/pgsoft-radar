@@ -8,7 +8,7 @@ const $ = id => document.getElementById(id);
 let history = [];
 const money = n => new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(n);
 const when = s => new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
-const gameKey = s => String(s).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/[^a-z0-9]+/g," ").trim();
+const gameKey = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/[^a-z0-9]+/g," ").trim();
 
 function renderSources(){
   const bySource = new Map();
@@ -44,13 +44,13 @@ function render(){
     if(!base||base===current)continue;
     for(const [game,latest] of Object.entries(current.games||{})){
       if(filter&&!game.toLocaleLowerCase("pt-BR").includes(filter))continue;
-      const previous=base.games?.[game];
+      const previousByKey=new Map(Object.entries(base.games||{}).map(([name,value])=>[gameKey(name),value]));
+      const previous=previousByKey.get(gameKey(game));
       if(typeof previous!=="number"||latest<previous)continue;
       const delta=latest-previous;
       if(delta>0)rows.push({game,source,sourceName:current.source_name||source,url:current.source_url||SOURCES.find(s=>s.id===source)?.url,delta,latest,time:current.collected_at});
     }
   }
-  const sourcesObserved=new Set(rows.map(r=>r.source)).size;
   const matches=new Map();
   for(const row of rows){
     const key=gameKey(row.game);
