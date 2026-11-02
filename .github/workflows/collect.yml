@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
+      - name: Sincronizar com main
+        run: git pull --rebase origin main
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
@@ -42,5 +44,4 @@ jobs:
             exit 0
           fi
           git commit -m "Atualiza histórico público PG Soft"
-          git pull --rebase origin main
           git push origin HEAD:main
