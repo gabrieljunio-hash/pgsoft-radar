@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-11-02T18:32:50.169299+00:00",
+  "updated_at": "2026-11-02T18:33:17.465305+00:00",
   "sources": {
     "farra.bet": {
       "source": "farra.bet",
       "source_name": "Farra.bet",
       "source_url": "https://farra.bet/cassino/pg-soft",
-      "collected_at": "2026-11-02T18:32:46Z",
+      "collected_at": "2026-11-02T18:33:14Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -75,7 +75,7 @@
       "source": "jogou.io",
       "source_name": "Jogou",
       "source_url": "https://jogou.io/cassino/pg-soft",
-      "collected_at": "2026-11-02T18:32:47Z",
+      "collected_at": "2026-11-02T18:33:15Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -145,7 +145,7 @@
       "source": "cassino365.bet",
       "source_name": "Cassino10",
       "source_url": "https://www.cassino365.bet/cassino/pg-soft",
-      "collected_at": "2026-11-02T18:32:48Z",
+      "collected_at": "2026-11-02T18:33:16Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -215,7 +215,7 @@
       "source": "tokyoclubbet.com",
       "source_name": "Tokyo Club",
       "source_url": "https://tokyoclubbet.com/cassino/pg-soft",
-      "collected_at": "2026-11-02T18:32:48Z",
+      "collected_at": "2026-11-02T18:33:16Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -285,7 +285,7 @@
       "source": "betz1nha.com",
       "source_name": "Betzinha",
       "source_url": "https://betz1nha.com/cassino/pg-soft",
-      "collected_at": "2026-11-02T18:32:49Z",
+      "collected_at": "2026-11-02T18:33:16Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -355,7 +355,7 @@
       "source": "jogofacil.net.br",
       "source_name": "Jogo Fácil",
       "source_url": "https://jogofacil.net.br/cassino/pg-soft",
-      "collected_at": "2026-11-02T18:32:50Z",
+      "collected_at": "2026-11-02T18:33:17Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
