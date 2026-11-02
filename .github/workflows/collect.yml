@@ -7,6 +7,8 @@ on:
       - ".github/workflows/collect.yml"
       - "scripts/collect.py"
       - "scripts/test_collect.py"
+      - "scripts/collect_wins.py"
+      - "scripts/test_wins.py"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
