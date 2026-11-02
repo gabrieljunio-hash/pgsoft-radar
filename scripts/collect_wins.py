@@ -38,7 +38,7 @@ def parse_time(value, now=None):
             parsed = datetime.strptime(value, fmt)
             if "%Y" not in fmt:
                 parsed = parsed.replace(year=now.year)
-                if parsed > now + timedelta(days=1):
+                if parsed > now.replace(tzinfo=None) + timedelta(days=1):
                     parsed = parsed.replace(year=now.year - 1)
             return parsed.replace(tzinfo=BR_TZ).astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
         except ValueError:
