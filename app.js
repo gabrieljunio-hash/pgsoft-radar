@@ -1,42 +1,10 @@
-const SOURCES=[
-{id:"farra.bet",name:"Farra.bet"},{id:"jogou.io",name:"Jogou"},{id:"cassino365.bet",name:"Cassino10"},{id:"tokyoclubbet.com",name:"Tokyo Club"},{id:"betz1nha.com",name:"Betzinha"},{id:"jogofacil.net.br",name:"Jogo Fácil"}];
-const $=id=>document.getElementById(id);let history=[];
-const money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(n);
+const SOURCES=[{id:"farra.bet",name:"Farra.bet"},{id:"jogou.io",name:"Jogou"},{id:"cassino365.bet",name:"Cassino10"},{id:"tokyoclubbet.com",name:"Tokyo Club"},{id:"betz1nha.com",name:"Betzinha"},{id:"jogofacil.net.br",name:"Jogo Fácil"},{id:"gigabet.com.br",name:"GigaBet"}];
+const $=id=>document.getElementById(id);let history=[],events=[],feedUpdated="";
+const money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:2}).format(n);
 const when=s=>new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
-const gameKey=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
-function renderSources(){
- const by=new Map();for(const s of history){const x=by.get(s.source)||{last:null};if(!x.last||s.collected_at>x.last.collected_at)x.last=s;by.set(s.source,x)}
- $("source-count").textContent=by.size;$("source-label").textContent=by.size+" fonte(s) com dados históricos";
- $("sources-list").innerHTML=SOURCES.map(s=>{const x=by.get(s.id);return '<article class="source-item"><strong>'+s.name+'</strong><small>'+(x?'ÚLTIMA COLETA: '+when(x.last.collected_at)+' · '+Object.keys(x.last.games||{}).length+' jogos':'AGUARDANDO DADOS')+'</small></article>'}).join("");
-}
-function render(){
- const hours=Number($("period").value),cutoff=Date.now()-hours*3600000,filter=$("game-filter").value.trim().toLowerCase();
- if(!history.length){empty("Aguardando a primeira coleta automática.");return}
- const bySource=new Map();for(const s of history){if(!bySource.has(s.source))bySource.set(s.source,[]);bySource.get(s.source).push(s)}
- const grouped=new Map();
- for(const [source,snaps] of bySource){
-  snaps.sort((a,b)=>new Date(a.collected_at)-new Date(b.collected_at));const current=snaps.at(-1);
-  const base=hours===-1?null:(hours===0?snaps.at(-2):[...snaps].reverse().find(s=>new Date(s.collected_at).getTime()<=cutoff));
-  if(hours!==-1&&(!base||base===current))continue;
-  const prev=base?new Map(Object.entries(base.games||{}).map(([n,v])=>[gameKey(n),v])):null;
-  for(const [name,latest] of Object.entries(current.games||{})){
-   if(filter&&!name.toLowerCase().includes(filter))continue;
-   const value=hours===-1?latest:latest-(prev.get(gameKey(name))??latest);if(hours!==-1&&value<=0)continue;
-   const key=gameKey(name);if(!grouped.has(key))grouped.set(key,{game:name,value:0,sources:new Set(),bestSource:"",time:current.collected_at,image:""});
-   const row=grouped.get(key);row.sources.add(source);
-   if(value>row.value){row.value=value;row.bestSource=current.source_name||source;row.time=current.collected_at;}
-  }
- }
- const rows=[...grouped.values()].sort((a,b)=>b.value-a.value);
- $("total-wins").textContent=money(rows.reduce((n,r)=>n+r.value,0));
- $("total-label").textContent=hours===-1?"SOMA DOS MAIORES VALORES":"SOMA DAS MAIORES VARIAÇÕES";
- $("games-label").textContent="JOGOS NO RANKING";$("sites-label").textContent="SITES COM DADOS";
- $("ranking-label").textContent=hours===-1?"Ranking de acumulados por jogo":"Ranking de aumentos por jogo";
- $("games-count").textContent=rows.length;$("casinos-count").textContent=new Set([...grouped.values()].flatMap(r=>[...r.sources])).size;
- $("common-count").textContent=rows.filter(r=>r.sources.size>=2).length;$("updated").textContent="Últimos dados: "+when(history.at(-1).collected_at);
- $("wins").innerHTML=rows.length?rows.map((r,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span>'+(r.image?'<img class="game-thumb" src="'+escapeHtml(r.image)+'" alt="" loading="lazy">':'<div class="game-thumb placeholder">'+escapeHtml(r.game.slice(0,2).toUpperCase())+'</div>')+'<div class="game-info"><h3>'+escapeHtml(r.game)+'</h3><strong>'+money(r.value)+'</strong><small>'+(hours===-1?'Acumulado publicado':'Aumento observado')+' · '+r.sources.size+' site(s)</small><small>Maior valor: '+escapeHtml(r.bestSource)+'</small><small>Última análise: '+escapeHtml(when(r.time))+'</small></div></article>').join(""):'<div class="empty">'+(hours===-1?'Nenhum jogo encontrado nas últimas coletas.':'Ainda não há aumento registrado para esse período.')+'</div>';
-}
-function empty(m){$("total-wins").textContent="—";$("games-count").textContent="—";$("casinos-count").textContent="—";$("common-count").textContent="—";$("wins").innerHTML='<div class="empty">'+m+'</div>'}
+const key=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+function renderSources(){const ids=new Set(history.map(x=>x.source));$("source-count").textContent=ids.size;$("source-label").textContent=ids.size+" fonte(s) com acumulados históricos";$("sources-list").innerHTML=SOURCES.map(s=>'<article class="source-item"><strong>'+s.name+'</strong><small>'+(ids.has(s.id)?"ACUMULADOS HISTÓRICOS":s.id==="gigabet.com.br"?"FEED DE PAGAMENTOS INDIVIDUAIS":"AGUARDANDO DADOS")+'</small></article>').join("")}
+function render(){const hours=Number($("period").value),cutoff=Date.now()-(hours<0?30:hours)*3600000,filter=$("game-filter").value.trim().toLowerCase();const filtered=events.filter(e=>new Date(e.occurred_at).getTime()>=cutoff&&(!filter||e.game.toLowerCase().includes(filter)));const groups=new Map();for(const e of filtered){const k=key(e.game);if(!groups.has(k))groups.set(k,{game:e.game,count:0,sources:new Set(),latest:null,max:0,image:e.image||""});const g=groups.get(k);g.count++;g.sources.add(e.source_name||e.source);if(!g.latest||e.occurred_at>g.latest.occurred_at)g.latest=e;g.max=Math.max(g.max,Number(e.multiplier)||0);if(!g.image&&e.image)g.image=e.image}const rows=[...groups.values()].sort((a,b)=>b.count-a.count||b.latest.occurred_at.localeCompare(a.latest.occurred_at));$("total-wins").textContent=filtered.length.toLocaleString("pt-BR");$("total-label").textContent="PAGAMENTOS DE 50X OU MAIS";$("games-label").textContent="JOGOS COM PAGAMENTO";$("sites-label").textContent="FONTES COM PAGAMENTOS";$("ranking-label").textContent="Ranking por quantidade de pagamentos ≥50x";$("games-count").textContent=rows.length;$("casinos-count").textContent=new Set(filtered.map(e=>e.source)).size;$("common-count").textContent=rows.filter(g=>g.sources.size>1).length;$("updated").textContent=feedUpdated?"Última coleta: "+when(feedUpdated):"Aguardando coleta";$("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span>'+(g.image&&/^https?:\/\//i.test(g.image)?'<img class="game-thumb" src="'+escapeHtml(g.image)+'" alt="" loading="lazy">':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'<div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><strong>'+g.count+' pagamento(s)</strong><small>Mais recente: '+escapeHtml(when(g.latest.occurred_at))+'</small><small>Último pagamento: '+Number(g.latest.multiplier).toFixed(2)+'x · '+money(g.latest.payout)+'</small><small>Maior multiplicador: '+g.max.toFixed(2)+'x · '+g.sources.size+' fonte(s)</small></div></article>').join(""):'<div class="empty">Nenhum pagamento PG Soft de 50x ou mais registrado neste período. A coleta individual está começando.</div>'}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-async function load(){$("refresh").disabled=true;$("refresh").textContent="Atualizando…";try{const r=await fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();const d=await r.json();history=Array.isArray(d.snapshots)?d.snapshots:[];renderSources();render()}catch(e){history=[];renderSources();empty("Histórico ainda não publicado.");$("updated").textContent="Sem dados"}finally{$("refresh").disabled=false;$("refresh").textContent="Atualizar dados ↻"}}
+async function load(){$("refresh").disabled=true;$("refresh").textContent="Atualizando…";try{const [h,w]=await Promise.all([fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"}),fetch("./data/wins.json?ts="+Date.now(),{cache:"no-store"})]);if(h.ok){const d=await h.json();history=d.snapshots||[]}if(w.ok){const d=await w.json();events=d.events||[];feedUpdated=d.updated_at||""}renderSources();render()}catch(e){$("wins").innerHTML='<div class="empty">Falha ao carregar dados.</div>';$("updated").textContent="Sem dados"}finally{$("refresh").disabled=false;$("refresh").textContent="Atualizar dados ↻"}}
 $("refresh").addEventListener("click",load);$("period").addEventListener("change",render);$("game-filter").addEventListener("input",render);load();
