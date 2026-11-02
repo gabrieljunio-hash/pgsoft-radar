@@ -90,10 +90,12 @@ def parse_rows(raw, known_games, now=None):
         if len(cells) < 6 or "multiplicador" in joined or "pagamento" in joined:
             continue
         # Feed columns: game, masked player, date/time, bet, multiplier, payout.
-        game = cells[0]
-        key = norm(game)
-        if key not in known_games:
+        raw_game = cells[0]
+        key = norm(raw_game)
+        matched = next((k for k in sorted(known_games, key=len, reverse=True) if k and (k in key or key in k)), None)
+        if not matched:
             continue
+        game = known_games[matched] if isinstance(known_games, dict) else raw_game
         bet_match = AMOUNT_RE.search(cells[3])
         payout_match = AMOUNT_RE.search(cells[5])
         mult = multiplier(cells[4])
@@ -121,7 +123,7 @@ def parse_rows(raw, known_games, now=None):
 def main():
     DATA.mkdir(exist_ok=True)
     history = json.loads(HISTORY.read_text(encoding="utf-8"))
-    known_games = {norm(name) for snap in history.get("snapshots", []) for name in snap.get("games", {})}
+    known_games = {norm(name): name for snap in history.get("snapshots", []) for name in snap.get("games", {})}
     req = Request(SOURCE["url"], headers={
         "User-Agent": "Mozilla/5.0 (compatible; PGSoftRadar/1.0)",
         "Accept-Language": "pt-BR,pt;q=0.9",
