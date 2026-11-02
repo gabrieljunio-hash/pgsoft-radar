@@ -42,10 +42,11 @@ function render(){
   for(const [source,snapshots] of bySource){
     snapshots.sort((a,b)=>new Date(a.collected_at)-new Date(b.collected_at));
     const current=snapshots.at(-1);
-    const base=hours===0?snapshots.at(-2):[...snapshots].reverse().find(s=>new Date(s.collected_at).getTime()<=cutoff);
-    if(!base||base===current)continue;
+    const base=hours===-1?null:(hours===0?snapshots.at(-2):[...snapshots].reverse().find(s=>new Date(s.collected_at).getTime()<=cutoff));
+    if(hours!==-1&&(!base||base===current))continue;
     for(const [game,latest] of Object.entries(current.games||{})){
       if(filter&&!game.toLocaleLowerCase("pt-BR").includes(filter))continue;
+      if(hours===-1){rows.push({game,source,sourceName:current.source_name||source,url:current.source_url||SOURCES.find(s=>s.id===source)?.url,delta:latest,latest,time:current.collected_at});continue;}
       const previousByKey=new Map(Object.entries(base.games||{}).map(([name,value])=>[gameKey(name),value]));
       const previous=previousByKey.get(gameKey(game));
       if(typeof previous!=="number"||latest<previous)continue;
@@ -62,11 +63,14 @@ function render(){
   for(const row of rows)row.convergence=matches.get(gameKey(row.game))?.size||1;
   rows.sort((a,b)=>b.delta-a.delta);
   $("total-wins").textContent=money(rows.reduce((sum,row)=>sum+row.delta,0));
+  $("total-label").textContent=hours===-1?"SOMA DOS ACUMULADOS":"SOMA DAS VARIAÇÕES";
+  $("ranking-label").textContent=hours===-1?"Maiores acumulados publicados":"Maiores aumentos observados";
+  $("value-heading").textContent=hours===-1?"VALOR PUBLICADO":"VARIAÇÃO";
   $("games-count").textContent=String(new Set(rows.map(r=>gameKey(r.game))).size);
   $("casinos-count").textContent=String(new Set(rows.map(r=>r.source)).size);
   $("common-count").textContent=String([...matches.values()].filter(set=>set.size>=2).length);
   $("updated").textContent="Últimos dados: "+when(history.at(-1).collected_at);
-  $("wins").innerHTML=rows.length?rows.map(r=>`<tr><td><b>${escapeHtml(r.game)}</b></td><td>${escapeHtml(r.sourceName)}</td><td>${money(r.delta)}</td><td>${r.convergence} fonte(s)</td><td>${when(r.time)}</td><td><a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></td></tr>`).join(""):`<tr><td colspan="6" class="empty">${hours===0?"Cada fonte precisa de pelo menos duas coletas para comparar.":"Ainda não há coleta antiga suficiente para o período selecionado. O histórico está sendo formado."}</td></tr>`;
+  $("wins").innerHTML=rows.length?rows.map(r=>`<tr><td><b>${escapeHtml(r.game)}</b></td><td>${escapeHtml(r.sourceName)}</td><td>${money(r.delta)}</td><td>${r.convergence} fonte(s)</td><td>${when(r.time)}</td><td><a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></td></tr>`).join(""):`<tr><td colspan="6" class="empty">${hours===-1?"Nenhum jogo encontrado nas últimas coletas.":"Ainda não há aumento registrado para esse período. O histórico está sendo formado."}</td></tr>`;
 }
 function empty(message){
   $("total-wins").textContent="—";$("games-count").textContent="—";$("casinos-count").textContent="—";$("common-count").textContent="—";
