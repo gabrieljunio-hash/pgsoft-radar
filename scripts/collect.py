@@ -22,7 +22,7 @@ SOURCES = [
     {"id": "jogou.io:tada", "name": "Jogou", "url": "https://jogou.io/cassino/tada", "provider": "TaDa Gaming"},
     {"id": "farra.bet:pragmatic", "name": "Farra.bet", "url": "https://farra.bet/cassino/pragmatic", "provider": "Pragmatic Play"},
     {"id": "jogou.io:pragmatic", "name": "Jogou", "url": "https://jogou.io/cassino/pragmatic", "provider": "Pragmatic Play"},
-    {"id": "cazebetbr.com:popok", "name": "Cazé Bet", "url": "https://cazebetbr.com/cassino?lista=popok", "provider": "PopOK", "layout": "after"},
+    {"id": "cazebetbr.com:popok", "name": "Cazé Bet", "url": "https://cazebetbr.com/cassino?lista=popok", "provider": "PopOK", "layout": "after", "use_browser": True},
 ]
 AMOUNT = r"([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?|[0-9]+(?:,[0-9]{2})?)"
 
@@ -66,6 +66,16 @@ def fetch_source(source):
     with urlopen(req, timeout=25) as response:
         raw = response.read().decode("utf-8", "replace")
     games = parse_games(raw, source.get("layout", "before"))
+    if len(games) < 5 and source.get("use_browser"):
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+            page = browser.new_page(locale="pt-BR", user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36")
+            page.goto(source["url"], wait_until="domcontentloaded", timeout=45000)
+            page.wait_for_timeout(5000)
+            rendered = page.locator("body").inner_text(timeout=15000)
+            browser.close()
+        games = parse_games(rendered, source.get("layout", "before"))
     if len(games) < 5:
         raise RuntimeError(f"parser encontrou apenas {len(games)} jogos")
     return games
