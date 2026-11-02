@@ -9,6 +9,19 @@ function renderSources(){
  $("source-count").textContent=by.size;$("source-label").textContent=by.size+" fonte(s) com dados históricos";
  $("sources-list").innerHTML=SOURCES.map(s=>{const x=by.get(s.id);return '<article class="source-item"><strong>'+s.name+'</strong><small>'+(x?'ÚLTIMA COLETA: '+when(x.last.collected_at)+' · '+Object.keys(x.last.games||{}).length+' jogos':'AGUARDANDO DADOS')+'</small></article>'}).join("");
 }
+function renderHistory(){
+ const selector=$("history-game");if(!selector)return;
+ const names=new Map();for(const snap of history)for(const name of Object.keys(snap.games||{})){const key=gameKey(name);if(!names.has(key)||name.length<names.get(key).length)names.set(key,name)}
+ const previous=selector.value;const options=[...names.entries()].sort((x,y)=>x[1].localeCompare(y[1],"pt-BR"));
+ selector.innerHTML=options.map(([key,name])=>'<option value="'+escapeHtml(key)+'">'+escapeHtml(name)+'</option>').join("");
+ if(options.some(([key])=>key===previous))selector.value=previous;
+ else if(options.length)selector.value=options[0][0];
+ const key=selector.value;const records=[];
+ for(const snap of history){for(const [name,value] of Object.entries(snap.games||{})){if(gameKey(name)===key)records.push({name,value,source:snap.source_name||snap.source,at:snap.collected_at})}}
+ records.sort((x,y)=>new Date(y.at)-new Date(x.at));
+ $("history-count").textContent=history.length+" coletas salvas · "+records.length+" registros deste jogo";
+ $("history-list").innerHTML=records.length?'<div class="history-table-wrap"><table class="history-table"><thead><tr><th>DATA/HORA</th><th>FONTE</th><th>VALOR PUBLICADO</th></tr></thead><tbody>'+records.slice(0,100).map(r=>'<tr><td>'+escapeHtml(when(r.at))+'</td><td>'+escapeHtml(r.source)+'</td><td>'+money(r.value)+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">Ainda não existem registros para este jogo.</div>';
+}
 function render(){
  const hours=Number($("period").value),cutoff=Date.now()-hours*3600000,filter=$("game-filter").value.trim().toLowerCase();
  if(!history.length){empty("Aguardando a primeira coleta automática.");return}
@@ -35,9 +48,10 @@ function render(){
  $("value-heading").textContent=hours===-1?"ACUMULADO":"AUMENTO";
  $("games-count").textContent=rows.length;$("casinos-count").textContent=new Set([...grouped.values()].flatMap(r=>[...r.sources])).size;
  $("common-count").textContent=rows.filter(r=>r.sources.size>=2).length;$("updated").textContent="Últimos dados: "+when(history.at(-1).collected_at);
+ renderHistory();
  $("wins").innerHTML=rows.length?rows.map((r,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span>'+(r.image?'<img class="game-thumb" src="'+escapeHtml(r.image)+'" alt="" loading="lazy">':'<div class="game-thumb placeholder">'+escapeHtml(r.game.slice(0,2).toUpperCase())+'</div>')+'<div class="game-info"><h3>'+escapeHtml(r.game)+'</h3><strong>'+money(r.value)+'</strong><small>'+(hours===-1?'Acumulado publicado':'Aumento observado')+' · '+r.sources.size+' site(s)</small><small>Maior valor: '+escapeHtml(r.bestSource)+'</small></div></article>').join(""):'<div class="empty">'+(hours===-1?'Nenhum jogo encontrado nas últimas coletas.':'Ainda não há aumento registrado para esse período.')+'</div>';
 }
 function empty(m){$("total-wins").textContent="—";$("games-count").textContent="—";$("casinos-count").textContent="—";$("common-count").textContent="—";$("wins").innerHTML='<div class="empty">'+m+'</div>'}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 async function load(){$("refresh").disabled=true;$("refresh").textContent="Atualizando…";try{const r=await fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error();const d=await r.json();history=Array.isArray(d.snapshots)?d.snapshots:[];renderSources();render()}catch(e){history=[];renderSources();empty("Histórico ainda não publicado.");$("updated").textContent="Sem dados"}finally{$("refresh").disabled=false;$("refresh").textContent="Atualizar dados ↻"}}
-$("refresh").addEventListener("click",load);$("period").addEventListener("change",render);$("game-filter").addEventListener("input",render);load();
+$("refresh").addEventListener("click",load);$("period").addEventListener("change",render);$("game-filter").addEventListener("input",render);$("history-game").addEventListener("change",renderHistory);load();
