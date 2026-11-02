@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#10131c">
   <meta name="description" content="Painel retrospectivo de dados públicos de jogos PG Soft em diferentes sites.">
-  <title>PGSoft Radar</title>
+  <title>PGSoft Radar — Pagamentos 50x+</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,19 +15,19 @@
   </header>
   <main>
     <section class="intro">
-      <div><p class="eyebrow">PAINEL DE DADOS PÚBLICOS</p><h1>Radar de grandes ganhos</h1><p class="sub">Ranking com a última análise salva e os acumulados publicados pelos sites.</p></div>
+      <div><p class="eyebrow">PAINEL DE DADOS PÚBLICOS</p><h1>Ranking de pagamentos PG Soft</h1><p class="sub">Jogos ordenados pela quantidade de pagamentos de pelo menos 50x a aposta, priorizando os mais recentes.</p></div>
       <div class="status-card"><span class="muted">FONTES COM HISTÓRICO</span><strong id="source-count">0</strong><small id="source-label">Aguardando coletas</small></div>
     </section>
-    <section class="notice"><b>Importante</b><span>Os valores são acumulados diários divulgados pelos próprios sites. Os valores são acumulados diários publicados pelos sites. Não representam prêmios individuais nem previsões.</span></section>
+    <section class="notice"><b>Importante</b><span>Somente pagamentos individuais publicados pelas fontes, com multiplicador mínimo de 50x. Dados históricos não preveem resultados futuros.</span></section>
     <section class="toolbar">
       <div class="filters">
-        <label>PERÍODO<select id="period"><option value="-1" selected>Maiores acumulados agora</option><option value="0">Desde a coleta anterior</option><option value="1">Última hora</option><option value="6">Últimas 6 horas</option><option value="24">Últimas 24 horas</option><option value="168">Últimos 7 dias</option></select></label>
+        <label>PERÍODO<select id="period"><option value="1" selected>Última hora</option><option value="6">Últimas 6 horas</option><option value="24">Últimas 24 horas</option><option value="168">Últimos 7 dias</option><option value="-1">Últimos 30 dias</option></select></label>
         <label>JOGO<input id="game-filter" type="search" placeholder="Buscar jogo..."></label>
       </div>
       <button id="refresh" type="button">Atualizar dados ↻</button>
     </section>
     <section class="stats">
-      <article><span id="total-label">SOMA DOS ACUMULADOS</span><strong id="total-wins">—</strong><small>Soma entre fontes; pode haver dados compartilhados</small></article>
+      <article><span id="total-label">SOMA DOS ACUMULADOS</span><strong id="total-wins">—</strong><small>Quantidade de pagamentos individuais elegíveis</small></article>
       <article><span id="games-label">JOGOS NO RANKING</span><strong id="games-count">—</strong><small>Jogos distintos no período</small></article>
       <article><span id="sites-label">SITES NO RANKING</span><strong id="casinos-count">—</strong><small>Fontes com comparação válida</small></article>
       <article><span>JOGOS EM COMUM</span><strong id="common-count">—</strong><small>Aumento simultâneo em 2+ fontes</small></article>
@@ -37,11 +37,11 @@
       <div id="wins" class="game-grid"><div class="empty">Carregando jogos...</div></div>
     </section>
     <section class="panel sources">
-      <div class="panel-head"><div><p class="eyebrow">COLETA</p><h2>Fontes monitoradas</h2></div><span class="muted">Histórico por fonte</span></div>
+      <div class="panel-head"><div><p class="eyebrow">COLETA</p><h2>Fontes monitoradas</h2></div><span class="muted">Fontes de coleta</span></div>
       <div id="sources-list" class="source-list"></div>
     </section>
     <footer>PGSoft Radar · Projeto independente de análise retrospectiva de dados públicos. Não é afiliado à PG Soft ou aos sites monitorados. 18+.</footer>
   </main>
-  <script src="app.js?v=61cc739"></script>
+  <script src="app.js?v=5520f38"></script>
 </body>
 </html>
