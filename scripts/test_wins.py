@@ -10,7 +10,7 @@ class WinFeedTests(unittest.TestCase):
         <tr><td>Gates of Olympus</td><td>123***456</td><td>02/11, 08:55</td><td>R$ 2,00</td><td>100×</td><td>R$ 200,00</td></tr>
         <tr><td>Fortune Ox</td><td>123***456</td><td>02/11, 08:54</td><td>R$ 1,00</td><td>10×</td><td>R$ 10,00</td></tr>
         </table>"""
-        known = {norm("Fortune Tiger"), norm("Fortune Ox")}
+        known = {norm("Fortune Tiger"): "Fortune Tiger", norm("Fortune Ox"): "Fortune Ox"}
         now = datetime(2026, 11, 2, 9, 0, tzinfo=timezone(timedelta(hours=-3)))
         rows = parse_rows(html, known, now)
         self.assertEqual(len(rows), 1)
