@@ -1,7 +1,1 @@
-{
-  "schema_version": 1,
-  "notice": "Pagamentos individuais >=50x coletados de feeds públicos.",
-  "updated_at": null,
-  "sources": [],
-  "events": []
-}
+{"schema_version":1,"notice":"Pagamentos individuais exibidos publicamente pela fonte; somente multiplicadores >=50x. Dados observacionais, sem capacidade preditiva.","updated_at":"2026-11-02T18:31:38.203725Z","sources":[{"id":"gigabet.com.br","name":"GigaBet","url":"https://gigabet.com.br/user/wallet"}],"events":[]}
