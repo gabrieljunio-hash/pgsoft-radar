@@ -17,26 +17,26 @@ SOURCES = [
     {"id": "cassino365.bet", "name": "Cassino10", "url": "https://www.cassino365.bet/cassino/pg-soft", "layout": "before"},
     {"id": "cazebetbr.com", "name": "Cazé Bet", "url": "https://cazebetbr.com/cassino?lista=pg-soft", "layout": "after"},
 ]
-AMOUNT = r"([0-9]{1,3}(?:\\.[0-9]{3})*(?:,[0-9]{2})?|[0-9]+(?:,[0-9]{2})?)"
+AMOUNT = r"([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?|[0-9]+(?:,[0-9]{2})?)"
 
 def parse_amount(value):
     return float(value.replace(".", "").replace(",", "."))
 
 def clean_name(value):
-    name = re.sub(r"\\s+", " ", unescape(value)).strip(" -|—:·")
-    name = re.sub(r"\\s+Jogar$", "", name, flags=re.I)
-    name = re.sub(r"\\s+PG\\s*Soft$", "", name, flags=re.I)
-    name = re.sub(r"^(?:Quente|Popular|Novo)\\s+", "", name, flags=re.I)
+    name = re.sub(r"\s+", " ", unescape(value)).strip(" -|—:·")
+    name = re.sub(r"\s+Jogar$", "", name, flags=re.I)
+    name = re.sub(r"\s+PG\s*Soft$", "", name, flags=re.I)
+    name = re.sub(r"^(?:Quente|Popular|Novo)\s+", "", name, flags=re.I)
     return name.strip()
 
 def parse_games(raw, layout="before"):
-    text = re.sub(r"<(script|style)[^>]*>.*?</\\1>", " ", raw, flags=re.I | re.S)
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", raw, flags=re.I | re.S)
     text = re.sub(r"<[^>]+>", " ", text)
-    text = unescape(re.sub(r"\\s+", " ", text))
+    text = unescape(re.sub(r"\s+", " ", text))
     games = {}
     if layout == "after":
         patterns = [
-            re.compile(r"Pagou hoje\\s+R\\$\\s*" + AMOUNT + r"\\s+(.{2,90}?)\\s+(?:PG\\s*Soft|RTP)", re.I),
+            re.compile(r"Pagou hoje\s+R\$\s*" + AMOUNT + r"\s+(.{2,90}?)\s+(?:PG\s*Soft|RTP)", re.I),
         ]
         for pattern in patterns:
             for value, raw_name in pattern.findall(text):
@@ -44,7 +44,7 @@ def parse_games(raw, layout="before"):
                 if name and len(name) <= 85:
                     games[name] = parse_amount(value)
     else:
-        pattern = re.compile(r"([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 '’&:!?().-]{1,85}?)\\s+(?:Jogar\\s+)?Pagou hoje\\s+R\\$\\s*" + AMOUNT, re.I)
+        pattern = re.compile(r"([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 '’&:!?().-]{1,85}?)\s+(?:Jogar\s+)?Pagou hoje\s+R\$\s*" + AMOUNT, re.I)
         for raw_name, value in pattern.findall(text):
             name = clean_name(raw_name)
             if name and len(name) <= 85:
@@ -106,12 +106,12 @@ def main():
         "notice": "Valores acumulados diários publicados por cada fonte. Variações entre coletas não são prêmios individuais nem previsões.",
         "snapshots": snapshots,
     }
-    history_path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\\n", encoding="utf-8")
+    history_path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     latest_by_source = {}
     for snapshot in snapshots:
         latest_by_source[snapshot["source"]] = snapshot
     (DATA / "latest.json").write_text(
-        json.dumps({"updated_at": datetime.now(timezone.utc).isoformat(), "sources": latest_by_source}, ensure_ascii=False, indent=2) + "\\n",
+        json.dumps({"updated_at": datetime.now(timezone.utc).isoformat(), "sources": latest_by_source}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"Coleta finalizada: {len(successes)}/{len(SOURCES)} fontes válidas; {len(snapshots)} snapshots no histórico.")
