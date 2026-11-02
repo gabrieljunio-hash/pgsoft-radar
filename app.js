@@ -66,7 +66,7 @@ function render(){
   $("casinos-count").textContent=String(new Set(rows.map(r=>r.source)).size);
   $("common-count").textContent=String([...matches.values()].filter(set=>set.size>=2).length);
   $("updated").textContent="Últimos dados: "+when(history.at(-1).collected_at);
-  $("wins").innerHTML=rows.length?rows.map(r=>`<tr><td><b>${escapeHtml(r.game)}</b></td><td>${escapeHtml(r.sourceName)}</td><td>${money(r.delta)}</td><td>${r.convergence} fonte(s)</td><td>${when(r.time)}</td><td><a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></td></tr>`).join(""):'<tr><td colspan="6" class="empty">hours===0?"Cada fonte precisa de pelo menos duas coletas para comparar.":"Ainda não há coleta antiga suficiente para o período selecionado. O histórico está sendo formado."</td></tr>';
+  $("wins").innerHTML=rows.length?rows.map(r=>`<tr><td><b>${escapeHtml(r.game)}</b></td><td>${escapeHtml(r.sourceName)}</td><td>${money(r.delta)}</td><td>${r.convergence} fonte(s)</td><td>${when(r.time)}</td><td><a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></td></tr>`).join(""):`<tr><td colspan="6" class="empty">${hours===0?"Cada fonte precisa de pelo menos duas coletas para comparar.":"Ainda não há coleta antiga suficiente para o período selecionado. O histórico está sendo formado."}</td></tr>`;
 }
 function empty(message){
   $("total-wins").textContent="—";$("games-count").textContent="—";$("casinos-count").textContent="—";$("common-count").textContent="—";
