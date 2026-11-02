@@ -30,6 +30,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Cache Chromium
+        uses: actions/cache@v4
+        id: chromium-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-v1
+      - name: Instalar Playwright
+        run: pip install playwright==1.55.0
+      - name: Instalar Chromium
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
+        run: python -m playwright install chromium
       - name: Testar parsers
         run: python -m unittest scripts.test_collect scripts.test_wins -v
       - name: Validar JavaScript do painel
