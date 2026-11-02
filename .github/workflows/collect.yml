@@ -28,6 +28,8 @@ jobs:
           python-version: "3.12"
       - name: Testar parsers
         run: python -m unittest scripts.test_collect -v
+      - name: Validar JavaScript do painel
+        run: node --check app.js
       - name: Coletar acumulados publicados
         run: python scripts/collect.py
       - name: Salvar histórico
