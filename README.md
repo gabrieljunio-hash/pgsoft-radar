@@ -7,12 +7,11 @@ Painel independente para observar dados públicos de acumulados diários de jogo
 - [Farra.bet](https://farra.bet/cassino/pg-soft)
 - [Jogou](https://jogou.io/cassino/pg-soft)
 - [Cassino10](https://www.cassino365.bet/cassino/pg-soft)
-- [Cazé Bet](https://cazebetbr.com/cassino?lista=pg-soft)
 - [Tokyo Club](https://tokyoclubbet.com/cassino/pg-soft)
 - [Betzinha](https://betz1nha.com/cassino/pg-soft)
 - [Jogo Fácil](https://jogofacil.net.br/cassino/pg-soft)
 
-O coletor tenta consultar cada fonte a cada 15 minutos. Uma falha em um site não impede a coleta dos demais. Fontes só entram no histórico quando o parser encontra pelo menos cinco jogos com valores válidos.
+O coletor consulta seis fontes a cada 15 minutos. Uma falha em um site não impede a coleta dos demais. Fontes só entram no histórico quando o parser encontra pelo menos cinco jogos com valores válidos. A página da Cazé Bet foi testada, mas não forneceu valores legíveis pelo coletor e ficou fora da lista ativa.
 
 ## Métrica e comparação
 
