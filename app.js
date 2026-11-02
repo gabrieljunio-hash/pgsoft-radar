@@ -32,7 +32,6 @@ function render(){
  $("total-label").textContent=hours===-1?"SOMA DOS MAIORES VALORES":"SOMA DAS MAIORES VARIAÇÕES";
  $("games-label").textContent="JOGOS NO RANKING";$("sites-label").textContent="SITES COM DADOS";
  $("ranking-label").textContent=hours===-1?"Ranking de acumulados por jogo":"Ranking de aumentos por jogo";
- $("value-heading").textContent=hours===-1?"ACUMULADO":"AUMENTO";
  $("games-count").textContent=rows.length;$("casinos-count").textContent=new Set([...grouped.values()].flatMap(r=>[...r.sources])).size;
  $("common-count").textContent=rows.filter(r=>r.sources.size>=2).length;$("updated").textContent="Últimos dados: "+when(history.at(-1).collected_at);
  $("wins").innerHTML=rows.length?rows.map((r,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span>'+(r.image?'<img class="game-thumb" src="'+escapeHtml(r.image)+'" alt="" loading="lazy">':'<div class="game-thumb placeholder">'+escapeHtml(r.game.slice(0,2).toUpperCase())+'</div>')+'<div class="game-info"><h3>'+escapeHtml(r.game)+'</h3><strong>'+money(r.value)+'</strong><small>'+(hours===-1?'Acumulado publicado':'Aumento observado')+' · '+r.sources.size+' site(s)</small><small>Maior valor: '+escapeHtml(r.bestSource)+'</small><small>Última análise: '+escapeHtml(when(r.time))+'</small></div></article>').join(""):'<div class="empty">'+(hours===-1?'Nenhum jogo encontrado nas últimas coletas.':'Ainda não há aumento registrado para esse período.')+'</div>';
