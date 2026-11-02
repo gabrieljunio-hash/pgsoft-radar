@@ -85,11 +85,13 @@ class TableParser(HTMLParser):
             self.row = None
             self.cell = None
 
-def parse_rows(raw, known_games, now=None, source=None):
+def parse_rows(raw, known_games, now=None, source=None, diagnostics=None):
     source = source or SOURCES[0]
     parser = TableParser()
     parser.feed(raw)
     records = []
+    if diagnostics is not None:
+        diagnostics.update({"table_rows": len(parser.rows), "pgsoft_rows": 0, "eligible_rows": 0})
     for row in parser.rows:
         cells = [c["text"] for c in row]
         joined = " ".join(cells).lower()
@@ -101,6 +103,8 @@ def parse_rows(raw, known_games, now=None, source=None):
         matched = next((k for k in sorted(known_games, key=len, reverse=True) if k and (k in key or key in k)), None)
         if not matched:
             continue
+        if diagnostics is not None:
+            diagnostics["pgsoft_rows"] += 1
         game = known_games[matched] if isinstance(known_games, dict) else raw_game
         bet_match = AMOUNT_RE.search(cells[3])
         payout_match = AMOUNT_RE.search(cells[5])
@@ -124,6 +128,8 @@ def parse_rows(raw, known_games, now=None, source=None):
         raw_id = "|".join([event["source"], key, occurred, str(bet), str(payout)])
         event["id"] = hashlib.sha256(raw_id.encode()).hexdigest()[:20]
         records.append(event)
+        if diagnostics is not None:
+            diagnostics["eligible_rows"] += 1
     return records
 
 def main():
@@ -140,9 +146,10 @@ def main():
             })
             with urlopen(req, timeout=30) as response:
                 raw = response.read().decode("utf-8", "replace")
-            rows = parse_rows(raw, known_games, source=source)
+            diagnostics = {}
+            rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
             found.extend(rows)
-            checked.append({"id": source["id"], "name": source["name"], "status": "ok", "events": len(rows)})
+            checked.append({"id": source["id"], "name": source["name"], "status": "ok", "events": len(rows), **diagnostics})
             print(f"OK {source['name']}: {len(rows)} pagamentos PG Soft >=50x")
         except Exception as exc:
             checked.append({"id": source["id"], "name": source["name"], "status": "error", "error": str(exc)})
