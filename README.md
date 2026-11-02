@@ -1,31 +1,33 @@
 # PGSoft Radar
 
-Painel independente para observar dados públicos de grandes ganhos de jogos PG Soft em diferentes cassinos.
+Painel independente para observar dados públicos de acumulados diários de jogos PG Soft em diferentes sites.
 
-## Funcionamento atual
+## Fontes monitoradas
 
-- O GitHub Actions tenta coletar a cada 15 minutos a página pública [Farra.bet — PG Soft](https://farra.bet/cassino/pg-soft).
-- A fonte exibe valores **“Pagou hoje” por jogo**. O coletor salva snapshots desses acumulados.
-- O painel compara snapshots e mostra a variação observada no período selecionado.
-- O histórico é mantido por até 30 dias.
-- O primeiro intervalo só aparece depois de pelo menos duas coletas.
+- [Farra.bet](https://farra.bet/cassino/pg-soft)
+- [Jogou](https://jogou.io/cassino/pg-soft)
+- [Cassino10](https://www.cassino365.bet/cassino/pg-soft)
+- [Cazé Bet](https://cazebetbr.com/cassino?lista=pg-soft)
 
-## Limitação essencial
+O coletor tenta consultar cada fonte a cada 15 minutos. Uma falha em um site não impede a coleta dos demais. Fontes só entram no histórico quando o parser encontra pelo menos cinco jogos com valores válidos.
 
-A fonte não fornece, na página pública identificada, uma lista verificável de cada prêmio individual com horário. Portanto, o sistema **não afirma que a diferença entre dois snapshots é um prêmio individual**. É apenas o aumento observado no acumulado diário divulgado pelo cassino. Se o valor cair (por reinício diário ou correção), a variação é descartada.
+## Métrica e comparação
 
-A coleta é experimental: se o site mudar a estrutura, bloquear requisições automatizadas ou deixar de publicar os valores, a execução falhará e o painel não inventará resultados.
+As páginas exibem valores "Pagou hoje" por jogo. O sistema salva snapshots por fonte e compara o valor mais recente com o registro anterior ao início do período selecionado. O painel mostra variações por jogo e site, além de destacar jogos que apresentaram aumento em duas ou mais fontes no mesmo intervalo.
 
-## Próximas integrações
+**Importante:** a diferença entre snapshots não é um prêmio individual. Os sites podem compartilhar fornecedores, infraestrutura ou dados, portanto fontes distintas não significam necessariamente operadores independentes. A soma entre fontes não deve ser interpretada como pagamentos únicos. Se o acumulado cair por reinício diário ou correção, essa variação não é contabilizada como aumento.
 
-Opataco e PH28 permanecem como candidatas, mas não entram no ranking até ser possível validar nome do jogo, valor e significado/horário do dado. Uma segunda fonte com métrica comparável permitirá verificar se tendências observadas aparecem em mais de um cassino.
+## Histórico e automação
+
+- GitHub Actions executa a cada 15 minutos e também aceita acionamento manual.
+- O histórico mantém até 30 dias.
+- Testes unitários verificam os dois formatos de página conhecidos.
+- Uma fonte indisponível é registrada como falha no log, sem descartar os dados válidos das demais.
 
 ## Publicação
 
-No GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → main → /(root)**.
+GitHub Pages: https://gabrieljunio-hash.github.io/pgsoft-radar/
 
-Site: https://gabrieljunio-hash.github.io/pgsoft-radar/
+## Uso responsável
 
-## Métrica e uso responsável
-
-Os dados são retrospectivos e incompletos. Não medem probabilidade, RTP real, chance de ganho nem preveem resultados futuros. Cada rodada é independente. Projeto independente, sem afiliação à PG Soft ou aos cassinos citados.
+Os dados são retrospectivos e incompletos. Não medem probabilidade, RTP real, chance de ganho nem preveem resultados futuros. Cada rodada é independente. Projeto independente, sem afiliação aos sites ou à PG Soft. 18+.
