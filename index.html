@@ -16,7 +16,7 @@
   <main>
     <section class="intro">
       <div><p class="eyebrow">PAINEL DE DADOS PÚBLICOS</p><h1>Ranking unificado de atividade por provedora</h1><p class="sub">Estimativa baseada nas altas recentes dos acumulados publicados, priorizando frequência e recência.</p></div>
-      <div class="status-card"><span class="muted">FEEDS DE PAGAMENTOS</span><strong id="source-count">0</strong><small id="source-label">Aguardando coletas</small></div>
+      <div class="status-card"><span class="muted">FONTES DE DADOS</span><strong id="source-count">0</strong><small id="source-label">Provedoras monitoradas</small></div>
     </section>
     <section class="notice"><b>Importante</b><span>Estimativa indireta: os acumulados não informam quantidade de pagamentos nem multiplicador individual. O ranking não confirma resultados de 50x+.</span></section>
     <section class="toolbar">
@@ -27,20 +27,20 @@
       <button id="refresh" type="button">Atualizar dados ↻</button>
     </section>
     <section class="stats">
-      <article><span id="total-label">SOMA DOS ACUMULADOS</span><strong id="total-wins">—</strong><small>Quantidade de pagamentos individuais elegíveis</small></article>
+      <article><span id="total-label">SOMA DOS ACUMULADOS</span><strong id="total-wins">—</strong><small>Sinais estimados por variação dos acumulados</small></article>
       <article><span id="games-label">JOGOS NO RANKING</span><strong id="games-count">—</strong><small>Jogos distintos no período</small></article>
-      <article><span id="sites-label">SITES NO RANKING</span><strong id="casinos-count">—</strong><small>Fontes com comparação válida</small></article>
-      <article><span>JOGOS EM COMUM</span><strong id="common-count">—</strong><small>Jogo identificado em 2+ fontes</small></article>
+      <article><span id="sites-label">SITES NO RANKING</span><strong id="casinos-count">—</strong><small>Fontes com histórico no período</small></article>
+      <article><span>JOGOS EM COMUM</span><strong id="common-count">—</strong><small>Jogo identificado em 2+ fontes da mesma provedora</small></article>
     </section>
     <section class="panel">
       <div class="panel-head"><div><p class="eyebrow">RANKING DE JOGOS</p><h2 id="ranking-label">Maiores acumulados publicados</h2></div><span class="muted" id="updated">Aguardando coleta</span></div>
       <div id="wins" class="game-grid"><div class="empty">Carregando jogos...</div></div>
     </section>
     <section class="panel sources">
-      <div class="panel-head"><div><p class="eyebrow">COLETA</p><h2>Fontes monitoradas</h2></div><span class="muted">Fontes de coleta</span></div>
+      <div class="panel-head"><div><p class="eyebrow">COLETA</p><h2>PG Soft · TaDa · Pragmatic · PopOK do ranking</h2></div><span class="muted">Fontes de coleta</span></div>
       <div id="sources-list" class="source-list"></div>
     </section>
-    <footer>PGSoft Radar · Projeto independente de análise retrospectiva de dados públicos. Não é afiliado à PG Soft ou aos sites monitorados. 18+.</footer>
+    <footer>Radar independente de dados públicos acumulados. Não prevê resultados, não confirma pagamentos individuais e não é afiliado às provedoras ou cassinos. 18+.</footer>
   </main>
   <script src="app.js?v=providers-1"></script>
 </body>
