@@ -1,32 +1,31 @@
 # PGSoft Radar
 
-Painel independente para reunir e comparar **grandes ganhos publicamente divulgados** em jogos PG Soft por diferentes cassinos.
+Painel independente para observar dados públicos de grandes ganhos de jogos PG Soft em diferentes cassinos.
 
-## Estado atual
+## Funcionamento atual
 
-- Interface responsiva publicada como site estático.
-- Cadastro inicial de fontes candidatas para integração.
-- Nenhum resultado fictício é exibido.
-- As fontes listadas ainda **não estão conectadas**: os sites precisam ser inspecionados e os dados/timestamps validados antes de qualquer ranking.
+- O GitHub Actions tenta coletar a cada 15 minutos a página pública [Farra.bet — PG Soft](https://farra.bet/cassino/pg-soft).
+- A fonte exibe valores **“Pagou hoje” por jogo**. O coletor salva snapshots desses acumulados.
+- O painel compara snapshots e mostra a variação observada no período selecionado.
+- O histórico é mantido por até 30 dias.
+- O primeiro intervalo só aparece depois de pelo menos duas coletas.
 
-## Limitação dos dados
+## Limitação essencial
 
-Não existe, até onde foi possível confirmar, um feed público global da PG Soft com todos os pagamentos feitos em todos os cassinos. O painel só poderá comparar eventos que cada cassino disponibilizar publicamente. Um ganho publicado não representa todas as rodadas, não mede a chance futura e não permite prever o próximo resultado.
+A fonte não fornece, na página pública identificada, uma lista verificável de cada prêmio individual com horário. Portanto, o sistema **não afirma que a diferença entre dois snapshots é um prêmio individual**. É apenas o aumento observado no acumulado diário divulgado pelo cassino. Se o valor cair (por reinício diário ou correção), a variação é descartada.
 
-## Próximas etapas
+A coleta é experimental: se o site mudar a estrutura, bloquear requisições automatizadas ou deixar de publicar os valores, a execução falhará e o painel não inventará resultados.
 
-1. Validar cada fonte: acesso público, identificação do jogo, valor, moeda e horário do evento.
-2. Criar adaptadores independentes por cassino, respeitando termos de uso e limites de acesso.
-3. Implementar coleta agendada e armazenamento histórico.
-4. Deduplicar eventos e normalizar moedas/horários.
-5. Liberar filtros de 1h, 6h, 24h e 7 dias somente para dados com timestamp verificável.
+## Próximas integrações
+
+Opataco e PH28 permanecem como candidatas, mas não entram no ranking até ser possível validar nome do jogo, valor e significado/horário do dado. Uma segunda fonte com métrica comparável permitirá verificar se tendências observadas aparecem em mais de um cassino.
 
 ## Publicação
 
-O projeto pode ser publicado pelo GitHub Pages: **Settings → Pages → Deploy from a branch → main → /(root)**.
+No GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → main → /(root)**.
 
-## Desenvolvimento
+Site: https://gabrieljunio-hash.github.io/pgsoft-radar/
 
-Somente HTML, CSS e JavaScript no estágio inicial. A coleta automática exigirá uma rotina de servidor/agendamento; não é seguro nem confiável fazer scraping diretamente do navegador do visitante.
+## Métrica e uso responsável
 
-Projeto independente, sem afiliação à PG Soft ou aos cassinos mencionados.
+Os dados são retrospectivos e incompletos. Não medem probabilidade, RTP real, chance de ganho nem preveem resultados futuros. Cada rodada é independente. Projeto independente, sem afiliação à PG Soft ou aos cassinos citados.
