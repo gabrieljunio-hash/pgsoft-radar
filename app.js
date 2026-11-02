@@ -2,7 +2,7 @@ const SOURCES=[{id:"farra.bet",name:"Farra.bet"},{id:"jogou.io",name:"Jogou"},{i
 const $=id=>document.getElementById(id);let history=[],events=[],feedSources=[],feedUpdated="";
 const money=n=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:2}).format(n);
 const when=s=>new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
-const key=s=>String(s).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const key=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 function renderSources(){
  $("source-count").textContent=feedSources.filter(s=>s.status==="ok").length;
  $("source-label").textContent=feedSources.length+" feeds de pagamentos individuais";
