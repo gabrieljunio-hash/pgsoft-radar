@@ -42,7 +42,7 @@ function render(){
   for(const [source,snapshots] of bySource){
     snapshots.sort((a,b)=>new Date(a.collected_at)-new Date(b.collected_at));
     const current=snapshots.at(-1);
-    const base=[...snapshots].reverse().find(s=>new Date(s.collected_at).getTime()<=cutoff);
+    const base=hours===0?snapshots.at(-2):[...snapshots].reverse().find(s=>new Date(s.collected_at).getTime()<=cutoff);
     if(!base||base===current)continue;
     for(const [game,latest] of Object.entries(current.games||{})){
       if(filter&&!game.toLocaleLowerCase("pt-BR").includes(filter))continue;
@@ -66,7 +66,7 @@ function render(){
   $("casinos-count").textContent=String(new Set(rows.map(r=>r.source)).size);
   $("common-count").textContent=String([...matches.values()].filter(set=>set.size>=2).length);
   $("updated").textContent="Últimos dados: "+when(history.at(-1).collected_at);
-  $("wins").innerHTML=rows.length?rows.map(r=>`<tr><td><b>${escapeHtml(r.game)}</b></td><td>${escapeHtml(r.sourceName)}</td><td>${money(r.delta)}</td><td>${r.convergence} fonte(s)</td><td>${when(r.time)}</td><td><a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></td></tr>`).join(""):'<tr><td colspan="6" class="empty">Ainda não há duas coletas por fonte que cubram o período selecionado. O histórico está sendo formado.</td></tr>';
+  $("wins").innerHTML=rows.length?rows.map(r=>`<tr><td><b>${escapeHtml(r.game)}</b></td><td>${escapeHtml(r.sourceName)}</td><td>${money(r.delta)}</td><td>${r.convergence} fonte(s)</td><td>${when(r.time)}</td><td><a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir ↗</a></td></tr>`).join(""):'<tr><td colspan="6" class="empty">hours===0?"Cada fonte precisa de pelo menos duas coletas para comparar.":"Ainda não há coleta antiga suficiente para o período selecionado. O histórico está sendo formado."</td></tr>';
 }
 function empty(message){
   $("total-wins").textContent="—";$("games-count").textContent="—";$("casinos-count").textContent="—";$("common-count").textContent="—";
