@@ -15,7 +15,7 @@ def fetch():
     req = Request(URL, headers={"User-Agent": "Mozilla/5.0 (compatible; PGSoftRadar/1.0; +https://github.com/gabrieljunio-hash/pgsoft-radar)"})
     with urlopen(req, timeout=30) as response:
         raw = response.read().decode("utf-8", "replace")
-    text = re.sub(r"<(script|style)[^>]*>.*?</\\1>", " ", raw, flags=re.I|re.S)
+    text = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", raw, flags=re.I|re.S)
     text = re.sub(r"<[^>]+>", " ", text)
     text = unescape(re.sub(r"\s+", " ", text))
     pattern = re.compile(r"([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 '’&:!?().-]{1,75}?)\s+Pagou hoje\s+R\$\s*([0-9.]+(?:,[0-9]{2})?)", re.I)
