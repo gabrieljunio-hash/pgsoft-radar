@@ -45,7 +45,7 @@ function render(){
   if(growth<=0)continue;
   rows.push({...g,activity,growth,rate,lastRise,sourceCount:sourceStats.length});
  }
- rows.sort((a,b)=>b.activity-a.activity||b.rate-a.rate||b.lastRise-a.lastRise);
+ rows.sort((a,b)=>(a.waiting?1:0)-(b.waiting?1:0)||b.activity-a.activity||b.rate-a.rate||b.lastRise-a.lastRise||b.current-a.current);
  const total=rows.reduce((n,g)=>n+g.activity,0);
  $("total-wins").textContent=total.toLocaleString("pt-BR");
  $("total-label").textContent="SINAIS DE ATIVIDADE ESTIMADOS";
@@ -56,7 +56,7 @@ function render(){
  $("casinos-count").textContent=new Set(history.filter(x=>new Date(x.collected_at).getTime()>=cutoff).map(x=>x.source+"|"+(x.provider||"PG Soft"))).size;
  $("common-count").textContent=rows.filter(g=>g.sourceCount>=2).length;
  $("updated").textContent=feedUpdated?"Última análise: "+when(feedUpdated):"Última análise salva";
- $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><small class="provider-tag">'+escapeHtml(g.provider)+'</small><strong>'+g.activity+' intervalos com alta · estimativa</strong><small>Crescimento do acumulado: '+money(g.growth)+'</small><small>Ritmo estimado: '+money(g.rate)+'/hora</small><small>Última alta observada: '+(g.lastRise?escapeHtml(when(new Date(g.lastRise).toISOString())):"—")+'</small><small>Comparado em '+g.sourceCount+' fontes · não confirma pagamentos individuais de 50x</small></div></article>').join(""):'<div class="empty">Ainda não há crescimento suficiente no período selecionado para estimar atividade.</div>';
+ $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><small class="provider-tag">'+escapeHtml(g.provider)+'</small>'+(g.waiting?'<strong>Aguardando segunda coleta</strong><small>Acumulado publicado: '+money(g.current)+'</small><small>Encontrado em '+g.sourceCount+' fonte(s); ainda sem variação histórica para calcular atividade</small>':'<strong>'+g.activity+' intervalos com alta · estimativa</strong><small>Crescimento do acumulado: '+money(g.growth)+'</small><small>Ritmo estimado: '+money(g.rate)+'/hora</small><small>Última alta observada: '+(g.lastRise?escapeHtml(when(new Date(g.lastRise).toISOString())):"—")+'</small><small>Comparado em '+g.sourceCount+' fontes · não confirma pagamentos individuais de 50x</small>')+'</div></article>').join(""):'<div class="empty">Nenhum jogo encontrado no período selecionado.</div>';
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 async function load(){$("refresh").disabled=true;$("refresh").textContent="Atualizando…";try{const [h,w]=await Promise.all([fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"}),fetch("./data/wins.json?ts="+Date.now(),{cache:"no-store"})]);if(h.ok){const d=await h.json();history=d.snapshots||[]}if(w.ok){const d=await w.json();events=d.events||[];feedSources=d.sources||[];feedUpdated=d.updated_at||""}renderSources();render()}catch(e){$("wins").innerHTML='<div class="empty">Falha ao carregar dados.</div>';$("updated").textContent="Sem dados"}finally{$("refresh").disabled=false;$("refresh").textContent="Atualizar dados ↻"}}
