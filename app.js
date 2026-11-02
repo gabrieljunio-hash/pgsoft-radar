@@ -38,12 +38,17 @@ function render(){
    const elapsed=Math.max((points.at(-1).t-points[0].t)/3600000,1/60);
    sourceStats.push({delta,rises,lastRise,rate:delta/elapsed});
   }
-  if(!sourceStats.length)continue;
+  const latestPoints=[...g.bySource.values()].map(points=>[...points].sort((a,b)=>a.t-b.t).at(-1)).filter(Boolean);
+  const current=latestPoints.sort((a,b)=>b.t-a.t)[0]?.value||0;
+  if(!sourceStats.length){
+   rows.push({...g,waiting:true,current,activity:0,growth:0,rate:0,lastRise:0,sourceCount:latestPoints.length});
+   continue;
+  }
   const median=arr=>{const x=[...arr].sort((a,b)=>a-b);return x[Math.floor(x.length/2)]||0};
   const activity=median(sourceStats.map(x=>x.rises)),growth=median(sourceStats.map(x=>x.delta)),rate=median(sourceStats.map(x=>x.rate));
   const lastRise=Math.max(...sourceStats.map(x=>x.lastRise));
-  if(growth<=0)continue;
-  rows.push({...g,activity,growth,rate,lastRise,sourceCount:sourceStats.length});
+  if(growth<=0){rows.push({...g,waiting:true,current,activity:0,growth:0,rate:0,lastRise:0,sourceCount:sourceStats.length});continue;}
+  rows.push({...g,activity,growth,rate,lastRise,sourceCount:sourceStats.length,current});
  }
  rows.sort((a,b)=>(a.waiting?1:0)-(b.waiting?1:0)||b.activity-a.activity||b.rate-a.rate||b.lastRise-a.lastRise||b.current-a.current);
  const total=rows.reduce((n,g)=>n+g.activity,0);
