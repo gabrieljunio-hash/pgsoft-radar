@@ -10,3 +10,5 @@
 @media(max-width:560px){.game-grid{grid-template-columns:1fr}.game-thumb{width:76px;height:76px;flex-basis:76px}.game-card{padding:12px}}
 
 .history-select-label{display:grid;gap:7px;max-width:420px;margin-bottom:15px}.history-select-label select{width:100%}.history-list{overflow:hidden}.history-table-wrap{overflow:auto;max-height:440px}.history-table{min-width:520px}.history-table th{position:sticky;top:0;background:#141925}.history-table td:last-child{font-weight:700;color:#b9adff}.history-table td{font-size:13px}
+
+.provider-tag{display:inline-block;width:max-content;border:1px solid #45405f;border-radius:5px;padding:1px 6px;color:#c9c0ff;font-size:10px;letter-spacing:.2px}
