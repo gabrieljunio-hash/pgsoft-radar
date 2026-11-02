@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10131c">
+  <meta name="description" content="Painel de acompanhamento retrospectivo de grandes ganhos divulgados publicamente em jogos PG Soft.">
+  <title>PGSoft Radar</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">◉</span><span>PGSOFT <b>RADAR</b></span></a>
+    <span class="live"><i></i> MONITORAMENTO</span>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">PAINEL DE DADOS PÚBLICOS</p><h1>Radar de grandes ganhos</h1><p class="sub">Compare registros divulgados por diferentes cassinos. Sem previsões e sem resultados inventados.</p></div>
+      <div class="status-card"><span class="muted">FONTES CONECTADAS</span><strong id="source-count">0</strong><small id="source-label">Nenhuma fonte validada</small></div>
+    </section>
+    <section class="notice"><b>Importante</b><span>Os dados dependem do que cada cassino publica. Este painel não representa todos os pagamentos realizados nem indica quais jogos pagarão depois.</span></section>
+    <section class="toolbar">
+      <div class="filters">
+        <label>PERÍODO<select id="period"><option value="1">Última hora</option><option value="6">Últimas 6 horas</option><option value="24" selected>Últimas 24 horas</option><option value="168">Últimos 7 dias</option></select></label>
+        <label>JOGO<input id="game-filter" type="search" placeholder="Buscar jogo..."></label>
+      </div>
+      <button id="refresh" type="button">Atualizar dados ↻</button>
+    </section>
+    <section class="stats">
+      <article><span>GANHOS REGISTRADOS</span><strong id="total-wins">—</strong><small>no período selecionado</small></article>
+      <article><span>JOGOS OBSERVADOS</span><strong id="games-count">—</strong><small>com registros disponíveis</small></article>
+      <article><span>CASSINOS OBSERVADOS</span><strong id="casinos-count">—</strong><small>fontes com dados válidos</small></article>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">RANKING OBSERVADO</p><h2>Maiores ganhos publicados</h2></div><span class="muted" id="updated">Aguardando coleta</span></div>
+      <div class="table-wrap"><table><thead><tr><th>JOGO</th><th>CASSINO</th><th>VALOR</th><th>HORÁRIO</th><th>FONTE</th></tr></thead><tbody id="wins"><tr><td colspan="5" class="empty">Nenhum dado real carregado. As fontes precisam ser integradas e validadas.</td></tr></tbody></table></div>
+    </section>
+    <section class="panel sources">
+      <div class="panel-head"><div><p class="eyebrow">COLETA</p><h2>Fontes monitoradas</h2></div><span class="muted">Status de integração</span></div>
+      <div id="sources-list" class="source-list"></div>
+    </section>
+    <footer>PGSoft Radar · Projeto independente de análise de dados públicos. Não é afiliado à PG Soft ou aos cassinos listados.</footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
