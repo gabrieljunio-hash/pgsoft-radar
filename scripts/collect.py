@@ -22,7 +22,7 @@ SOURCES = [
     {"id": "jogou.io:tada", "name": "Jogou", "url": "https://jogou.io/cassino/tada", "provider": "TaDa Gaming"},
     {"id": "farra.bet:pragmatic", "name": "Farra.bet", "url": "https://farra.bet/cassino/pragmatic", "provider": "Pragmatic Play"},
     {"id": "jogou.io:pragmatic", "name": "Jogou", "url": "https://jogou.io/cassino/pragmatic", "provider": "Pragmatic Play"},
-    {"id": "cazebetbr.com:popok", "name": "Cazé Bet", "url": "https://cazebetbr.com/cassino?lista=popok", "provider": "PopOK"},
+    {"id": "cazebetbr.com:popok", "name": "Cazé Bet", "url": "https://cazebetbr.com/cassino?lista=popok", "provider": "PopOK", "layout": "after"},
 ]
 AMOUNT = r"([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?|[0-9]+(?:,[0-9]{2})?)"
 
