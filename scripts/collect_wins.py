@@ -7,8 +7,8 @@ import sys
 from datetime import datetime, timezone, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.request import Request, urlopen
 from urllib.parse import urljoin
+from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -138,22 +138,25 @@ def main():
     known_games = {norm(name): name for snap in history.get("snapshots", []) for name in snap.get("games", {})}
     found = []
     checked = []
-    for source in SOURCES:
-        try:
-            req = Request(source["url"], headers={
-                "User-Agent": "Mozilla/5.0 (compatible; PGSoftRadar/1.0)",
-                "Accept-Language": "pt-BR,pt;q=0.9",
-            })
-            with urlopen(req, timeout=30) as response:
-                raw = response.read().decode("utf-8", "replace")
-            diagnostics = {}
-            rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
-            found.extend(rows)
-            checked.append({"id": source["id"], "name": source["name"], "status": "ok", "events": len(rows), **diagnostics})
-            print(f"OK {source['name']}: {len(rows)} pagamentos PG Soft >=50x")
-        except Exception as exc:
-            checked.append({"id": source["id"], "name": source["name"], "status": "error", "error": str(exc)})
-            print(f"FALHA {source['name']}: {exc}", file=sys.stderr)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+        for source in SOURCES:
+            page = browser.new_page(locale="pt-BR", user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36")
+            try:
+                page.goto(source["url"], wait_until="domcontentloaded", timeout=45000)
+                page.wait_for_timeout(4000)
+                raw = page.content()
+                diagnostics = {}
+                rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
+                found.extend(rows)
+                checked.append({"id": source["id"], "name": source["name"], "status": "ok", "events": len(rows), **diagnostics})
+                print(f"OK {source['name']}: {diagnostics.get('table_rows', 0)} linhas; {diagnostics.get('pgsoft_rows', 0)} jogos PG Soft; {len(rows)} pagamentos >=50x")
+            except Exception as exc:
+                checked.append({"id": source["id"], "name": source["name"], "status": "error", "error": str(exc)})
+                print(f"FALHA {source['name']}: {exc}", file=sys.stderr)
+            finally:
+                page.close()
+        browser.close()
     if not any(x["status"] == "ok" for x in checked):
         raise RuntimeError("Nenhum feed de pagamentos pôde ser consultado.")
     old = json.loads(OUTPUT.read_text(encoding="utf-8")) if OUTPUT.exists() else {"events": []}
