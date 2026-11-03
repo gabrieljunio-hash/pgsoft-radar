@@ -26,8 +26,9 @@ function calculateScore(sourceStats,now,windowMs,observedSourceCount){
  const lastRise=Math.max(0,...sourceStats.map(s=>s.lastRise));
  const age=lastRise?Math.max(0,now-lastRise):windowMs*2;
  const recency=Math.exp(-age/Math.max(windowMs*.25,60000));
- const score=100*(.30*frequency+.25*continuity+.20*confirmation+.15*regularity+.10*recency);
- return {score,frequency,continuity,confirmation,regularity,recency,lastRise,rises,intervals};
+ const confidence=Math.min(1,intervals/6);
+ const score=100*(.30*frequency+.25*continuity+.20*confirmation+.15*regularity+.10*recency)*confidence;
+ return {score,frequency,continuity,confirmation,regularity,recency,lastRise,rises,intervals,confidence};
 }
 function render(){
  const hours=Number($("period").value),windowHours=hours<0?720:hours,windowMs=windowHours*3600000;
@@ -63,8 +64,8 @@ function render(){
    sourceStats.push({deltas,positive:deltas.filter(d=>d>0),lastRise});
   }
   const latestPoints=[...g.bySource.values()].map(p=>[...p].sort((a,b)=>a.t-b.t).at(-1)).filter(Boolean);
-  const metrics=calculateScore(sourceStats,now,windowMs);
-  rows.push({...g,...metrics,waiting:!sourceStats.length||metrics.rises===0,sourceCount:sourceStats.length});
+  const metrics=calculateScore(sourceStats,now,windowMs,g.bySource.size);
+  rows.push({...g,...metrics,waiting:metrics.intervals<2||metrics.rises===0,sourceCount:g.bySource.size});
  }
  rows.sort((a,b)=>(a.waiting?1:0)-(b.waiting?1:0)||b.score-a.score||b.rises-a.rises||b.lastRise-a.lastRise);
  const latest=history.reduce((max,s)=>Math.max(max,new Date(s.collected_at).getTime()||0),0);
