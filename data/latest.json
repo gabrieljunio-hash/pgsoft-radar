@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-11-03T23:40:30.222812+00:00",
+  "updated_at": "2026-11-03T23:41:21.580965+00:00",
   "sources": {
     "farra.bet|PG Soft": {
       "source": "farra.bet",
       "source_name": "Farra.bet",
       "source_url": "https://farra.bet/cassino/pg-soft",
       "provider": "PG Soft",
-      "collected_at": "2026-11-03T23:40:15Z",
+      "collected_at": "2026-11-03T23:41:10Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -139,7 +139,7 @@
       "source_name": "Jogou",
       "source_url": "https://jogou.io/cassino/pg-soft",
       "provider": "PG Soft",
-      "collected_at": "2026-11-03T23:40:15Z",
+      "collected_at": "2026-11-03T23:41:10Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -272,7 +272,7 @@
       "source_name": "Cassino10",
       "source_url": "https://www.cassino365.bet/cassino/pg-soft",
       "provider": "PG Soft",
-      "collected_at": "2026-11-03T23:40:15Z",
+      "collected_at": "2026-11-03T23:41:10Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -405,7 +405,7 @@
       "source_name": "Tokyo Club",
       "source_url": "https://tokyoclubbet.com/cassino/pg-soft",
       "provider": "PG Soft",
-      "collected_at": "2026-11-03T23:40:15Z",
+      "collected_at": "2026-11-03T23:41:10Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -538,7 +538,7 @@
       "source_name": "Betzinha",
       "source_url": "https://betz1nha.com/cassino/pg-soft",
       "provider": "PG Soft",
-      "collected_at": "2026-11-03T23:40:15Z",
+      "collected_at": "2026-11-03T23:41:10Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -671,7 +671,7 @@
       "source_name": "Jogo Fácil",
       "source_url": "https://jogofacil.net.br/cassino/pg-soft",
       "provider": "PG Soft",
-      "collected_at": "2026-11-03T23:40:15Z",
+      "collected_at": "2026-11-03T23:41:10Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -804,7 +804,7 @@
       "source_name": "Farra.bet",
       "source_url": "https://farra.bet/cassino/tada",
       "provider": "TaDa Gaming",
-      "collected_at": "2026-11-03T23:40:30Z",
+      "collected_at": "2026-11-03T23:41:21Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -937,7 +937,7 @@
       "source_name": "Jogou",
       "source_url": "https://jogou.io/cassino/tada",
       "provider": "TaDa Gaming",
-      "collected_at": "2026-11-03T23:40:30Z",
+      "collected_at": "2026-11-03T23:41:21Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -1070,7 +1070,7 @@
       "source_name": "Farra.bet",
       "source_url": "https://farra.bet/cassino/pragmatic",
       "provider": "Pragmatic Play",
-      "collected_at": "2026-11-03T23:40:30Z",
+      "collected_at": "2026-11-03T23:41:21Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -1203,7 +1203,7 @@
       "source_name": "Jogou",
       "source_url": "https://jogou.io/cassino/pragmatic",
       "provider": "Pragmatic Play",
-      "collected_at": "2026-11-03T23:40:30Z",
+      "collected_at": "2026-11-03T23:41:21Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
@@ -1336,7 +1336,7 @@
       "source_name": "Cazé Bet",
       "source_url": "https://cazebetbr.com/cassino?lista=popok",
       "provider": "PopOK",
-      "collected_at": "2026-11-03T23:40:30Z",
+      "collected_at": "2026-11-03T23:41:21Z",
       "currency": "BRL",
       "metric": "daily_cumulative_total",
       "games": {
