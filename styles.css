@@ -54,3 +54,23 @@
  .help-card{padding:16px}
  .weight-list>div{grid-template-columns:48px 1fr;gap:8px}
 }
+
+
+/* Correção: a posição do ranking não deve cobrir a miniatura */
+.game-card{align-items:flex-start}
+.game-card>.rank{
+ position:relative;
+ top:auto;
+ left:auto;
+ right:auto;
+ bottom:auto;
+ z-index:1;
+ flex:0 0 27px;
+ width:27px;
+ height:27px;
+ display:grid;
+ place-items:center;
+ padding:0;
+ margin:0;
+}
+.game-thumb.placeholder{padding-top:0}
