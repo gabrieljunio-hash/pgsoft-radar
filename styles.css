@@ -104,3 +104,16 @@
 .insight-detail[hidden]{display:none}
 @media(max-width:850px){.insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.advanced-section{padding:13px}.insight-grid{grid-template-columns:1fr}}
+
+
+/* Diagnóstico transparente dos feeds de pagamentos individuais */
+.source-status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.source-status-card{background:var(--panel,#171b27);border:1px solid var(--line,#292f3d);border-radius:14px;padding:14px;min-width:0}
+.source-status-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.source-status-head b{font-size:14px}
+.source-state{font-size:11px;font-weight:700;padding:5px 8px;border-radius:999px;background:#303443;color:#d5d9e3}
+.source-state.ok{background:#173b2d;color:#8be0b5}
+.source-state.no_pgsoft_data,.source-state.no_50x_events{background:#40351d;color:#f0cd7b}
+.source-state.error{background:#45252a;color:#ff9da6}
+.source-status-card p{font-size:12px;line-height:1.5;color:var(--muted,#a5adbd);margin:10px 0}
+.source-status-card small{font-size:11px;color:var(--muted,#a5adbd)}
