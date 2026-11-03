@@ -4,7 +4,7 @@ const when=s=>new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"s
 const key=s=>String(s).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function median(values){const a=[...values].sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:0}
-function calculateScore(sourceStats,now,windowMs){
+function calculateScore(sourceStats,now,windowMs,observedSourceCount){
  const intervals=sourceStats.reduce((n,s)=>n+s.deltas.length,0);
  const rises=sourceStats.reduce((n,s)=>n+s.deltas.filter(d=>d>0).length,0);
  const frequency=intervals?rises/intervals:0;
@@ -15,7 +15,7 @@ function calculateScore(sourceStats,now,windowMs){
  }
  const continuity=recentTotal?recentRises/recentTotal:0;
  const confirming=sourceStats.filter(s=>s.deltas.some(d=>d>0)).length;
- const confirmation=sourceStats.length?confirming/sourceStats.length:0;
+ const confirmation=observedSourceCount?confirming/observedSourceCount:0;
  const regularities=sourceStats.filter(s=>s.positive.length>=2).map(s=>{
   const avg=s.positive.reduce((a,b)=>a+b,0)/s.positive.length;
   const variance=s.positive.reduce((a,b)=>a+(b-avg)**2,0)/s.positive.length;
