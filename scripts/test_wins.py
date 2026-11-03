@@ -9,6 +9,17 @@ class WinFeedTests(unittest.TestCase):
         self.assertEqual(classify_source({"pgsoft_rows": 2, "eligible_rows": 0}), "no_50x_events")
         self.assertEqual(classify_source({"pgsoft_rows": 2, "eligible_rows": 1}), "ok")
 
+    def test_accessible_sources_without_pgsoft_data_do_not_fail_collection(self):
+        from scripts.collect_wins import should_fail_collection
+        self.assertFalse(should_fail_collection([
+            {"status": "no_pgsoft_data"},
+            {"status": "no_50x_events"},
+        ]))
+        self.assertTrue(should_fail_collection([
+            {"status": "error"},
+            {"status": "error"},
+        ]))
+
     def test_only_pgsoft_games_and_50x_or_more(self):
         html = """
         <table><tr><th>Jogo</th><th>Jogador</th><th>Data e hora</th><th>Aposta</th><th>Multiplicador</th><th>Pagamento</th></tr>
