@@ -89,3 +89,18 @@
 .time-game-result small,.time-game-foot{font-size:11px;color:#9da5b7;line-height:1.4}
 .analysis-note{margin:12px 0 0}
 @media(max-width:650px){.analysis-section{padding:13px}.time-analysis-grid{grid-template-columns:1fr}}
+
+/* Análises avançadas */
+.advanced-section{margin:18px 0;background:#141925;border:1px solid #292f40;border-radius:13px;padding:19px}
+.insight-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.insight-card{position:relative;min-width:0;background:#101520;border:1px solid #303648;border-radius:10px;padding:13px 42px 14px 13px}
+.insight-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.insight-top h3{font-size:14px;margin:0}
+.analysis-stars{color:#f0c66b;white-space:nowrap;font-size:13px;letter-spacing:1px}
+.insight-tags{display:flex;gap:5px;flex-wrap:wrap;margin:9px 0}
+.insight-tags span{font-size:10px;color:#b9adff;background:#24213a;border:1px solid #393354;border-radius:20px;padding:3px 7px}
+.insight-result{font-size:11px;line-height:1.5;color:#aeb5c5;min-height:34px}
+.info-button{position:absolute;right:10px;top:10px;width:24px;height:24px;padding:0;border-radius:50%;font-size:12px;font-weight:800;line-height:24px;background:#2c3040;color:#d7d9e4}
+.insight-detail{margin-top:10px;padding-top:9px;border-top:1px solid #303648;font-size:11px;line-height:1.55;color:#c5cada}
+.insight-detail[hidden]{display:none}
+@media(max-width:850px){.insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.advanced-section{padding:13px}.insight-grid{grid-template-columns:1fr}}
