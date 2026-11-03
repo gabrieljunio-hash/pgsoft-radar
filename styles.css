@@ -19,3 +19,38 @@
 .toolbar{margin:0 0 18px;align-items:end}.filters label{font-size:10px}.ranking-section{background:#141925;border:1px solid #292f40;border-radius:13px;padding:19px}.ranking-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.ranking-head h2{font-size:20px;margin:0}.ranking-head p{font-size:12px;color:#9da5b7;margin:3px 0 0}.ranking-head>span{font-size:11px;color:#9299aa}
 .game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.game-card{padding:13px;min-height:118px}.game-info{gap:4px}.game-info h3{font-size:15px;line-height:1.25}.game-info .up-label{font-size:12px;color:#79d7a4}.game-info .waiting-label{font-size:12px;color:#e4c27a}.game-info small{font-size:11px;line-height:1.35}.game-info small b{color:#e4e7f0}.provider-tag{font-size:10px}
 @media(max-width:650px){main{padding:20px 13px}.topbar{padding:0 14px;height:58px}.live{font-size:9px}.intro{margin:4px 0 18px}.howto{margin:16px 0;padding:12px}.toolbar{margin-bottom:14px}.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}.filters input,.filters select{min-width:0;width:100%;padding:10px 8px;font-size:13px}.toolbar button{width:100%;padding:11px}.ranking-section{padding:12px}.ranking-head{align-items:flex-start;flex-direction:column;gap:4px}.game-grid{grid-template-columns:1fr}.game-card{min-height:105px}.game-thumb-wrap{width:76px;height:76px;flex-basis:76px}.game-thumb{width:76px;height:76px;flex-basis:76px}}
+
+
+/* Ajustes de imersão e capas */
+.top-nav{display:flex;align-items:center;gap:20px}
+.top-nav a,footer a{color:#b9adff;text-decoration:none;font-size:13px}
+.top-nav a:hover,footer a:hover{text-decoration:underline}
+.intro{margin:8px 0 22px}
+.intro h1{margin:0 0 7px}
+.intro .sub{margin:0}
+.ranking-head h2{display:none}
+.ranking-head p{font-size:12px;color:#9da5b7;margin:0}
+.game-thumb-wrap{overflow:hidden;border-radius:9px;background:#202638;border:1px solid #30384b}
+.game-thumb,.game-thumb-wrap .game-thumb{display:block;width:100%;height:100%;object-fit:contain;object-position:center;background:#202638}
+.game-thumb-fallback{position:absolute;inset:0}
+.game-thumb[hidden],.game-thumb-fallback[hidden]{display:none!important}
+.help-page{max-width:850px}
+.help-page .intro{margin:8px 0 25px}
+.help-card{background:#141925;border:1px solid #292f40;border-radius:13px;padding:20px 22px;margin:14px 0}
+.help-card h2{font-size:19px;margin:0 0 9px}
+.help-card p,.help-card li{color:#c1c7d5;font-size:14px;line-height:1.65}
+.help-card p{margin:8px 0}
+.help-card ul{padding-left:20px;margin:8px 0}
+.weight-list{display:grid;gap:0;margin-top:12px}
+.weight-list>div{display:grid;grid-template-columns:58px 1fr;gap:12px;padding:12px 0;border-top:1px solid #2b3243;align-items:start}
+.weight-list b{color:#b9adff;font-size:17px}
+.weight-list span{color:#c1c7d5;font-size:14px}
+.warning-card{border-left:3px solid #d7ad63}
+.back-link{display:inline-block;color:#b9adff;text-decoration:none;margin:12px 0 4px}
+@media(max-width:560px){
+ .top-nav{gap:10px}.top-nav a{font-size:12px}.live{display:none}
+ .intro{margin:5px 0 17px}
+ .ranking-head{flex-direction:row;align-items:center}
+ .help-card{padding:16px}
+ .weight-list>div{grid-template-columns:48px 1fr;gap:8px}
+}
