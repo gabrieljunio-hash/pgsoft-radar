@@ -48,15 +48,11 @@ jobs:
         run: node --check app.js
       - name: Coletar acumulados publicados
         run: python scripts/collect.py
-      - name: Verificar URLs reais das capas
-        run: python scripts/check_images.py
-      - name: Coletar pagamentos individuais 50x+
-        run: python scripts/collect_wins.py
       - name: Salvar histórico
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/history.json data/latest.json data/wins.json
+          git add data/history.json data/latest.json
           if git diff --cached --quiet; then
             echo "Sem alterações nos dados."
             exit 0
