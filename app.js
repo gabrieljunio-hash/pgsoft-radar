@@ -151,7 +151,7 @@ async function load(){
   if(!response.ok)throw new Error("Não foi possível carregar o histórico");
   const data=await response.json();history=data.snapshots||[];
   try{const wr=await fetch("./data/wins.json?ts="+Date.now(),{cache:"no-store"});if(wr.ok){const wd=await wr.json();winEvents=wd.events||[];}}catch(_){winEvents=[];}
-  render();
+  render();if(window.renderAdvancedAnalysis)renderAdvancedAnalysis();
  }catch(e){
   $("wins").innerHTML='<div class="empty">Não foi possível carregar o ranking. Tente novamente.</div>';
   $("ranking-summary").textContent="Falha ao carregar dados";
