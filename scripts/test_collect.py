@@ -1,7 +1,13 @@
 import unittest
-from scripts.collect import parse_games
+from scripts.collect import parse_games, parse_game_images
 
 class ParserTests(unittest.TestCase):
+    def test_game_image_matching(self):
+        html = '<img alt="Fortune Tiger" src="/games/fortune-tiger.webp"><img alt="Banner" src="/banner.jpg">'
+        images = parse_game_images(html, ["Fortune Tiger", "Lucky Neko"], "https://example.com/cassino/pg-soft")
+        self.assertEqual(images.get("Fortune Tiger"), "https://example.com/games/fortune-tiger.webp")
+        self.assertNotIn("Lucky Neko", images)
+
     def test_standard_layout(self):
         html = "<div>Fortune Tiger Jogar Pagou hoje R$ 244.441</div><div>Lucky Neko Pagou hoje R$ 12.345,67</div>"
         games = parse_games(html, "before")
