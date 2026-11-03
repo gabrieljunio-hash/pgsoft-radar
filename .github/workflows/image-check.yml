@@ -1,0 +1,23 @@
+name: Verificar capas das fontes
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pgsoft-image-check
+  cancel-in-progress: false
+jobs:
+  check-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verificar URLs reais das capas
+        run: python scripts/check_images.py
