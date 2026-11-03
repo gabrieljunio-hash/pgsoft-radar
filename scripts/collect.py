@@ -7,6 +7,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from urllib.request import Request, urlopen
 from html import unescape
+from html.parser import HTMLParser
+from urllib.parse import urljoin, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -58,7 +60,46 @@ def parse_games(raw, layout="before"):
                 games[name] = parse_amount(value)
     return games
 
-def fetch_source(source):
+class ImageParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.images = []
+    def handle_starttag(self, tag, attrs):
+        if tag not in ("img", "source"):
+            return
+        a = dict(attrs)
+        src = a.get("src") or a.get("data-src") or a.get("data-lazy-src") or a.get("data-original")
+        if not src and a.get("srcset"):
+            src = a["srcset"].split(",")[0].strip().split(" ")[0]
+        if src:
+            label = " ".join(a.get(k, "") for k in ("alt", "title", "data-name", "data-game", "aria-label"))
+            self.images.append((label, src))
+
+def normalize_label(value):
+    return re.sub(r"[^a-z0-9]+", "", unescape(value).lower())
+
+def parse_game_images(raw, game_names, page_url):
+    parser = ImageParser()
+    try:
+        parser.feed(raw)
+    except Exception:
+        pass
+    result = {}
+    for game in game_names:
+        wanted = normalize_label(game)
+        if not wanted:
+            continue
+        for label, src in parser.images:
+            label_key = normalize_label(label)
+            path_key = normalize_label(urlparse(src).path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
+            if ((label_key and (label_key == wanted or wanted in label_key or (label_key in wanted and len(label_key) >= 6))) or (path_key and (path_key == wanted or wanted in path_key))):
+                absolute = urljoin(page_url, src)
+                if urlparse(absolute).scheme in ("http", "https"):
+                    result[game] = absolute
+                    break
+    return result
+
+def fetch_source_details(source):
     req = Request(source["url"], headers={
         "User-Agent": "Mozilla/5.0 (compatible; PGSoftRadar/1.0; +https://github.com/gabrieljunio-hash/pgsoft-radar)",
         "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
@@ -66,6 +107,7 @@ def fetch_source(source):
     with urlopen(req, timeout=25) as response:
         raw = response.read().decode("utf-8", "replace")
     games = parse_games(raw, source.get("layout", "before"))
+    images = parse_game_images(raw, games.keys(), source["url"])
     if len(games) < 5 and source.get("use_browser"):
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
@@ -74,11 +116,16 @@ def fetch_source(source):
             page.goto(source["url"], wait_until="domcontentloaded", timeout=45000)
             page.wait_for_timeout(5000)
             rendered = page.locator("body").inner_text(timeout=15000)
+            raw = page.content()
             browser.close()
         games = parse_games(rendered, source.get("layout", "before"))
+        images = parse_game_images(raw, games.keys(), source["url"])
     if len(games) < 5:
         raise RuntimeError(f"parser encontrou apenas {len(games)} jogos")
-    return games
+    return games, images
+
+def fetch_source(source):
+    return fetch_source_details(source)[0]
 
 def load_history(path):
     try:
@@ -94,7 +141,7 @@ def main():
     print(f"Iniciando monitoramento de {len(SOURCES)} fontes/provedoras.")
     for source in SOURCES:
         try:
-            games = fetch_source(source)
+            games, game_images = fetch_source_details(source)
             now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             snapshots.append({
                 "source": source["id"],
@@ -105,6 +152,7 @@ def main():
                 "currency": "BRL",
                 "metric": "daily_cumulative_total",
                 "games": games,
+                "game_images": game_images,
             })
             successes.append((source["name"], source["provider"], len(games)))
             print(f"OK {source['name']} / {source['provider']}: {len(games)} jogos")
