@@ -3,7 +3,18 @@ let history=[];
 const when=s=>new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
 const key=s=>String(s).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function median(values){const a=[...values].sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:0}
+function nextGameImage(img){
+ const candidates=JSON.parse(img.dataset.candidates||"[]");
+ const next=Number(img.dataset.nextCandidate||1);
+ if(next<candidates.length){
+  img.dataset.nextCandidate=String(next+1);
+  img.src=candidates[next];
+ }else{
+  img.hidden=true;
+  const fallback=img.parentElement.querySelector(".game-thumb-fallback");
+  if(fallback)fallback.hidden=false;
+ }
+}
 function calculateScore(sourceStats,now,windowMs,observedSourceCount){
  const intervals=sourceStats.reduce((n,s)=>n+s.deltas.length,0);
  const rises=sourceStats.reduce((n,s)=>n+s.deltas.filter(d=>d>0).length,0);
@@ -41,9 +52,9 @@ function render(){
   for(const [name,value] of Object.entries(snap.games||{})){
    if(filter&&!name.toLowerCase().includes(filter))continue;
    const k=provider+"|"+key(name);
-   if(!perGame.has(k))perGame.set(k,{game:name,provider,bySource:new Map(),image:""});
+   if(!perGame.has(k))perGame.set(k,{game:name,provider,bySource:new Map(),images:[]});
    const g=perGame.get(k),sourceKey=snap.source+"|"+provider;
-   if(!g.image&&snap.game_images&&snap.game_images[name])g.image=snap.game_images[name];
+   if(snap.game_images&&snap.game_images[name]){const image=snap.game_images[name];if((image.startsWith("https://")||image.startsWith("http://"))&&!g.images.includes(image))g.images.push(image);}
    if(!g.bySource.has(sourceKey))g.bySource.set(sourceKey,[]);
    g.bySource.get(sourceKey).push({t,value:Number(value)});
   }
@@ -71,7 +82,7 @@ function render(){
  const latest=history.reduce((max,s)=>Math.max(max,new Date(s.collected_at).getTime()||0),0);
  $("updated").textContent=latest?"Dados coletados: "+when(new Date(latest).toISOString()):"Aguardando dados";
  $("ranking-summary").textContent=rows.length?rows.length+" jogos encontrados · pontuação de consistência":"Nenhum jogo encontrado neste período";
- $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.image?'<img class="game-thumb" src="'+escapeHtml(g.image)+'" alt="'+escapeHtml(g.game)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="game-thumb placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo dados</strong><small>Aguardando novas coletas para avaliar a consistência.</small>':'<strong class="up-label">'+g.score.toFixed(0)+' pontos</strong><small>Altas em '+Math.round(g.frequency*100)+'% das variações · '+g.rises+' altas observadas</small><small>Fontes monitoradas: '+g.sourceCount+' · continuidade recente '+Math.round(g.continuity*100)+'%</small><small>Base: '+g.intervals+' variações · confiança da amostra '+Math.round(g.confidence*100)+'%')+'</div></article>').join(""):'<div class="empty">Nenhum jogo encontrado. Tente ampliar o período ou limpar a busca.</div>';
+ $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo dados</strong><small>Aguardando novas coletas para avaliar a consistência.</small>':'<strong class="up-label">'+g.score.toFixed(0)+' pontos</strong><small>Altas em '+Math.round(g.frequency*100)+'% das variações · '+g.rises+' altas observadas</small><small>Fontes monitoradas: '+g.sourceCount+' · continuidade recente '+Math.round(g.continuity*100)+'%</small><small>Base: '+g.intervals+' variações · confiança da amostra '+Math.round(g.confidence*100)+'%')+'</div></article>').join(""):'<div class="empty">Nenhum jogo encontrado. Tente ampliar o período ou limpar a busca.</div>';
 }
 async function load(){
  $("refresh").disabled=true;$("refresh").textContent="Carregando…";
