@@ -1,7 +1,8 @@
-function renderAdvancedAnalysis(){
+function renderAdvancedAnalysis(history,winEvents){
+ window._radarRows=[];
  const root=document.getElementById("advanced-analysis");if(!root)return;
- const groups=new Map(),stats=new Map(),winCount=(window.winEvents||[]).length;
- for(const s of window.history||[]){
+ const groups=new Map(),stats=new Map(),winCount=(winEvents||[]).length;
+ for(const s of history||[]){
   const t=Date.parse(s.collected_at);if(!Number.isFinite(t))continue;
   const id=(s.source||"")+"|"+(s.provider||"PG Soft");
   if(!groups.has(id))groups.set(id,[]);
