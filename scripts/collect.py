@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Collect public daily cumulative totals, tagged by game provider."""
+# The GitHub Actions schedule is configured for the minimum 5-minute interval.
 import json
 import re
 import sys
