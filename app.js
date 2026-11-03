@@ -1,5 +1,6 @@
 const $=id=>document.getElementById(id);
 let history=[];
+let winEvents=[];
 const when=s=>new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
 const key=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -76,13 +77,28 @@ function render(){
   }
   const latestPoints=[...g.bySource.values()].map(p=>[...p].sort((a,b)=>a.t-b.t).at(-1)).filter(Boolean);
   const metrics=calculateScore(sourceStats,now,windowMs,g.bySource.size);
-  rows.push({...g,...metrics,waiting:metrics.intervals===0,sourceCount:g.bySource.size});
+  const confirmedSources=sourceStats.filter(s=>s.deltas.some(d=>d>0)).length;
+  const hourly=Array.from({length:24},()=>({count:0,rises:0,total:0}));
+  for(const points of g.bySource.values()){
+   points.sort((a,b)=>a.t-b.t);
+   for(let i=1;i<points.length;i++){
+    if(points[i].t<cutoff)continue;
+    const hour=(new Date(points[i].t).getUTCHours()+21)%24;
+    const d=points[i].value-points[i-1].value;
+    hourly[hour].count++;
+    if(d>0){hourly[hour].rises++;hourly[hour].total+=d;}
+   }
+  }
+  const peak=hourly.map((h,hour)=>({...h,hour,average:h.count?h.total/h.count:0}))
+   .filter(h=>h.count>=2&&h.rises>0).sort((a,b)=>b.average-a.average)[0]||null;
+  const gameWins=g.provider==="PG Soft"?winEvents.filter(e=>key(e.game)===key(g.game)&&Date.parse(e.occurred_at)>=cutoff):[];
+  rows.push({...g,...metrics,waiting:metrics.intervals===0,sourceCount:g.bySource.size,confirmedSources,peak,gameWins});
  }
  rows.sort((a,b)=>(a.waiting?1:0)-(b.waiting?1:0)||b.score-a.score||b.rises-a.rises||b.lastRise-a.lastRise);
  const latest=history.reduce((max,s)=>Math.max(max,new Date(s.collected_at).getTime()||0),0);
  $("updated").textContent=latest?"Dados coletados: "+when(new Date(latest).toISOString()):"Aguardando dados";
  $("ranking-summary").textContent=rows.length?rows.length+" jogos encontrados · pontuação de consistência":"Nenhum jogo encontrado neste período";
- $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Poucos dados ainda</strong><small>Nenhuma comparação entre coletas neste período.</small>':'<strong class="up-label">'+(g.score>=60?'Movimento frequente':g.score>=30?'Movimento moderado':'Movimento baixo')+'</strong><small>Aumentos: '+g.rises+' de '+g.intervals+' comparações</small><small>Fontes com dados: '+g.sourceCount+'</small><small>Amostra: '+(g.intervals>=6?'mais completa':'limitada')+'</small>')+'</div></article>').join(""):'<div class="empty">Nenhum jogo encontrado. Tente ampliar o período ou limpar a busca.</div>';
+ $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo histórico</strong><small>Ainda não há comparações suficientes neste período.</small>':'<strong class="up-label">'+(g.score>=60?'Movimento frequente':g.score>=30?'Movimento moderado':'Movimento baixo')+'</strong><small>O acumulado aumentou em '+g.rises+' de '+g.intervals+' comparações.</small><small>Alta confirmada em '+g.confirmedSources+' de '+g.sourceCount+' fontes monitoradas.</small><small>'+(g.peak?'Horário de maior movimento: '+String(g.peak.hour).padStart(2,'0')+'h–'+String((g.peak.hour+1)%24).padStart(2,'0')+'h.':'Horário de pico ainda não identificado.')+'</small>'+(g.provider==='PG Soft'?'<small>Pagamentos individuais 50x+ encontrados: '+g.gameWins.length+(g.gameWins.length?' · maior: '+Math.max(...g.gameWins.map(e=>e.multiplier)).toLocaleString('pt-BR')+'x':' · nenhum registro nas fontes consultadas')+'</small>':'<small>Pagamentos individuais: sem fonte disponível para esta provedora.</small>'))+'</div></article>').join(""):'<div class="empty">Nenhum jogo encontrado. Tente ampliar o período ou limpar a busca.</div>';
  renderTimeAnalysis();
 }
 
@@ -131,7 +147,9 @@ async function load(){
  try{
   const response=await fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"});
   if(!response.ok)throw new Error("Não foi possível carregar o histórico");
-  const data=await response.json();history=data.snapshots||[];render();
+  const data=await response.json();history=data.snapshots||[];
+  try{const wr=await fetch("./data/wins.json?ts="+Date.now(),{cache:"no-store"});if(wr.ok){const wd=await wr.json();winEvents=wd.events||[];}}catch(_){winEvents=[];}
+  render();
  }catch(e){
   $("wins").innerHTML='<div class="empty">Não foi possível carregar o ranking. Tente novamente.</div>';
   $("ranking-summary").textContent="Falha ao carregar dados";
