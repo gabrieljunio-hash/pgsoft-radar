@@ -177,8 +177,11 @@ def main():
             finally:
                 page.close()
         browser.close()
-    if not any(x["status"] == "ok" for x in checked):
-        raise RuntimeError("Nenhum feed de pagamentos pôde ser consultado.")
+    # Páginas acessíveis sem dados PG Soft também são um resultado válido:
+    # salvar o diagnóstico permite ao painel mostrar a cobertura real das fontes.
+    # Só falhar quando todas as fontes apresentarem erro de acesso/coleta.
+    if checked and all(x.get("status") == "error" for x in checked):
+        raise RuntimeError("Nenhuma fonte de pagamentos pôde ser consultada.")
     old = json.loads(OUTPUT.read_text(encoding="utf-8")) if OUTPUT.exists() else {"events": []}
     by_id = {e["id"]: e for e in old.get("events", [])}
     for event in found:
