@@ -1,6 +1,7 @@
 const $=id=>document.getElementById(id);
 let history=[];
 let winEvents=[];
+let winSourceData={sources:[]};
 const when=s=>new Date(s).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
 const key=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -104,6 +105,22 @@ function render(){
  renderTimeAnalysis();
 }
 
+function renderWinSources(data){
+ const el=$("win-sources");if(!el)return;
+ const sources=data&&Array.isArray(data.sources)?data.sources:[];
+ if(!sources.length){el.innerHTML='<div class="empty">Nenhuma fonte de pagamentos individuais configurada.</div>';return;}
+ const labels={ok:"Feed identificado",no_50x_events:"Sem evento 50x+ nesta coleta",no_pgsoft_data:"Sem dados PG Soft públicos",error:"Falha de acesso"};
+ el.innerHTML=sources.map(s=>{
+  const status=s.status||"error";
+  const details=[
+   (Number(s.table_rows)||0)+" linhas",
+   (Number(s.pgsoft_rows)||0)+" jogos PG Soft",
+   (Number(s.eligible_rows)||0)+" eventos 50x+"
+  ].join(" · ");
+  return '<article class="source-status-card"><div class="source-status-head"><b>'+escapeHtml(s.name||s.id||"Fonte")+'</b><span class="source-state '+escapeHtml(status)+'">'+escapeHtml(labels[status]||status)+'</span></div><p>'+escapeHtml(s.message||s.error||"Sem diagnóstico disponível.")+'</p><small>'+escapeHtml(details)+(s.http_status?' · HTTP '+Number(s.http_status):'')+'</small></article>';
+ }).join("");
+}
+
 function renderTimeAnalysis(){
  const cutoff=Date.now()-24*3600000, games=new Map();
  for(const snap of history){
@@ -150,7 +167,8 @@ async function load(){
   const response=await fetch("./data/history.json?ts="+Date.now(),{cache:"no-store"});
   if(!response.ok)throw new Error("Não foi possível carregar o histórico");
   const data=await response.json();history=data.snapshots||[];
-  try{const wr=await fetch("./data/wins.json?ts="+Date.now(),{cache:"no-store"});if(wr.ok){const wd=await wr.json();winEvents=wd.events||[];}}catch(_){winEvents=[];}
+  try{const wr=await fetch("./data/wins.json?ts="+Date.now(),{cache:"no-store"});if(wr.ok){const wd=await wr.json();winEvents=wd.events||[];winSourceData=wd;}}catch(_){winEvents=[];winSourceData={sources:[]};}
+  renderWinSources(winSourceData);
   render();if(window.renderAdvancedAnalysis)renderAdvancedAnalysis(history,winEvents);
  }catch(e){
   $("wins").innerHTML='<div class="empty">Não foi possível carregar o ranking. Tente novamente.</div>';
