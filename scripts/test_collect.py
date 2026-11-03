@@ -1,5 +1,6 @@
 import unittest
-from scripts.collect import parse_games, parse_game_images
+from unittest.mock import patch
+from scripts.collect import parse_games, parse_game_images, collect_batch
 
 class ParserTests(unittest.TestCase):
     def test_game_image_matching(self):
@@ -55,6 +56,23 @@ class ParserTests(unittest.TestCase):
         games = parse_games(html)
         self.assertEqual(games.get("Yummy: Trick or Treat507"), 8345051.55)
         self.assertEqual(games.get("FastMaster513"), 8345259.14)
+
+
+    def test_parallel_batch_keeps_source_order_and_captures_errors(self):
+        sources = [
+            {"id": "a", "name": "A", "provider": "PG Soft"},
+            {"id": "b", "name": "B", "provider": "PG Soft"},
+        ]
+        def fake_fetch(source):
+            if source["id"] == "b":
+                raise RuntimeError("indisponível")
+            return {"Tiger": 10}, {}
+        with patch("scripts.collect.fetch_source_details", side_effect=fake_fetch):
+            results = collect_batch(sources, parallel=True)
+        self.assertEqual([item[0]["id"] for item in results], ["a", "b"])
+        self.assertEqual(results[0][1], {"Tiger": 10})
+        self.assertIsNone(results[0][3])
+        self.assertIsInstance(results[1][3], RuntimeError)
 
 if __name__ == "__main__":
     unittest.main()
