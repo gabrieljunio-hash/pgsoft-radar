@@ -117,3 +117,12 @@
 .source-state.error{background:#45252a;color:#ff9da6}
 .source-status-card p{font-size:12px;line-height:1.5;color:var(--muted,#a5adbd);margin:10px 0}
 .source-status-card small{font-size:11px;color:var(--muted,#a5adbd)}
+
+/* Estrelas dos indicadores no próprio cartão do ranking */
+.rank-metric{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:3px 0;border-top:1px solid rgba(255,255,255,.055)}
+.rank-metric .metric-copy{min-width:0;font-size:11px;line-height:1.4;color:#9299aa;overflow-wrap:anywhere}
+.rank-metric .metric-copy b{color:#d8dce7;font-weight:600}
+.metric-stars{flex:0 0 auto;white-space:nowrap;font-size:12px;letter-spacing:1px;line-height:1.4}
+.stars-filled{color:#f4c45e}
+.stars-empty{color:#596171}
+.game-info{gap:5px}
