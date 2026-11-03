@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 from html import unescape
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
+import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -61,22 +62,51 @@ def parse_games(raw, layout="before"):
     return games
 
 class ImageParser(HTMLParser):
+    """Collect real game artwork URLs from image and picture elements."""
     def __init__(self):
         super().__init__()
         self.images = []
+
     def handle_starttag(self, tag, attrs):
         if tag not in ("img", "source"):
             return
-        a = dict(attrs)
-        src = a.get("src") or a.get("data-src") or a.get("data-lazy-src") or a.get("data-original")
-        if not src and a.get("srcset"):
-            src = a["srcset"].split(",")[0].strip().split(" ")[0]
-        if src:
-            label = " ".join(a.get(k, "") for k in ("alt", "title", "data-name", "data-game", "aria-label"))
-            self.images.append((label, src))
+        attrs = dict(attrs)
+        # Prefer lazy-loaded sources: a plain src is often a 1x1 placeholder.
+        src = next((attrs.get(k) for k in (
+            "data-src", "data-lazy-src", "data-original",
+            "data-original-src", "data-url", "src"
+        ) if attrs.get(k)), None)
+        srcset = attrs.get("data-srcset") or attrs.get("srcset")
+        if srcset:
+            candidates = []
+            for item in srcset.split(","):
+                bits = item.strip().split()
+                if bits:
+                    descriptor = bits[1] if len(bits) > 1 else "1x"
+                    score = float(descriptor[:-1]) if descriptor.endswith("x") else (float(descriptor[:-1]) / 1000 if descriptor.endswith("w") and descriptor[:-1].isdigit() else 1)
+                    candidates.append((score, bits[0]))
+            if candidates:
+                src = max(candidates)[1]
+        if not src:
+            return
+        src = unescape(src.strip())
+        lowered = src.lower()
+        if lowered.startswith(("data:", "blob:", "javascript:")):
+            return
+        if any(token in lowered for token in ("placeholder", "transparent", "spacer.gif", "blank.gif")):
+            return
+        label = " ".join(attrs.get(k, "") for k in (
+            "alt", "title", "data-name", "data-game", "data-game-name",
+            "data-title", "aria-label"
+        ))
+        self.images.append((label, src))
+
 
 def normalize_label(value):
-    return re.sub(r"[^a-z0-9]+", "", unescape(value).lower())
+    value = unicodedata.normalize("NFKD", unescape(str(value)).lower())
+    value = "".join(char for char in value if not unicodedata.combining(char))
+    return re.sub(r"[^a-z0-9]+", "", value)
+
 
 def parse_game_images(raw, game_names, page_url):
     parser = ImageParser()
@@ -92,9 +122,18 @@ def parse_game_images(raw, game_names, page_url):
         for label, src in parser.images:
             label_key = normalize_label(label)
             path_key = normalize_label(urlparse(src).path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
-            if ((label_key and (label_key == wanted or wanted in label_key or (label_key in wanted and len(label_key) >= 6))) or (path_key and (path_key == wanted or wanted in path_key))):
+            label_match = label_key and (
+                label_key == wanted or wanted in label_key or
+                (label_key in wanted and len(label_key) >= 6)
+            )
+            path_match = path_key and (
+                path_key == wanted or wanted in path_key or
+                (path_key in wanted and len(path_key) >= 6)
+            )
+            if label_match or path_match:
                 absolute = urljoin(page_url, src)
-                if urlparse(absolute).scheme in ("http", "https"):
+                parsed = urlparse(absolute)
+                if parsed.scheme in ("http", "https") and parsed.netloc:
                     result[game] = absolute
                     break
     return result
