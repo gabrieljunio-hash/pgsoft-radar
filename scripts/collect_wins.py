@@ -132,6 +132,13 @@ def parse_rows(raw, known_games, now=None, source=None, diagnostics=None):
             diagnostics["eligible_rows"] += 1
     return records
 
+def classify_source(diagnostics):
+    if diagnostics.get("pgsoft_rows", 0) <= 0:
+        return "no_pgsoft_data"
+    if diagnostics.get("eligible_rows", 0) <= 0:
+        return "no_50x_events"
+    return "ok"
+
 def main():
     DATA.mkdir(exist_ok=True)
     history = json.loads(HISTORY.read_text(encoding="utf-8"))
@@ -143,14 +150,27 @@ def main():
         for source in SOURCES:
             page = browser.new_page(locale="pt-BR", user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36")
             try:
-                page.goto(source["url"], wait_until="domcontentloaded", timeout=45000)
+                response = page.goto(source["url"], wait_until="domcontentloaded", timeout=45000)
                 page.wait_for_timeout(4000)
                 raw = page.content()
                 diagnostics = {}
                 rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
                 found.extend(rows)
-                checked.append({"id": source["id"], "name": source["name"], "status": "ok", "events": len(rows), **diagnostics})
-                print(f"OK {source['name']}: {diagnostics.get('table_rows', 0)} linhas; {diagnostics.get('pgsoft_rows', 0)} jogos PG Soft; {len(rows)} pagamentos >=50x")
+                status = classify_source(diagnostics)
+                messages = {
+                    "ok": "Feed PG Soft identificado e pagamentos >=50x processados.",
+                    "no_50x_events": "Jogos PG Soft identificados, mas nenhum pagamento >=50x apareceu nesta coleta.",
+                    "no_pgsoft_data": "Página acessível, mas sem linhas públicas de jogos PG Soft reconhecidas.",
+                }
+                checked.append({
+                    "id": source["id"], "name": source["name"], "status": status,
+                    "message": messages[status], "events": len(rows),
+                    "http_status": response.status if response else None,
+                    "page_title": page.title(), "page_url": page.url, **diagnostics,
+                })
+                print(f"{status.upper()} {source['name']}: HTTP {response.status if response else 'n/d'}; "
+                      f"{diagnostics.get('table_rows', 0)} linhas; "
+                      f"{diagnostics.get('pgsoft_rows', 0)} jogos PG Soft; {len(rows)} pagamentos >=50x")
             except Exception as exc:
                 checked.append({"id": source["id"], "name": source["name"], "status": "error", "error": str(exc)})
                 print(f"FALHA {source['name']}: {exc}", file=sys.stderr)
