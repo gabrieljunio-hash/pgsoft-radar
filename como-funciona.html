@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10131c">
+  <meta name="description" content="Entenda como o PGSoft Radar calcula o ranking de consistência.">
+  <title>Como funciona — PGSoft Radar</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">◉</span><span>PGSOFT <b>RADAR</b></span></a>
+    <nav class="top-nav"><a href="./">Voltar ao ranking</a></nav>
+  </header>
+  <main class="help-page">
+    <section class="intro">
+      <p class="eyebrow">PGSOFT RADAR</p>
+      <h1>Como funciona o ranking</h1>
+      <p class="sub">O ranking compara a regularidade das altas nos valores acumulados publicados pelas fontes monitoradas.</p>
+    </section>
+    <section class="help-card">
+      <h2>Como a pontuação é calculada</h2>
+      <p>Cada jogo recebe uma pontuação de 0 a 100. Os critérios têm estes pesos:</p>
+      <div class="weight-list">
+        <div><b>30%</b><span>Frequência de altas — em quantas variações observadas o acumulado aumentou.</span></div>
+        <div><b>25%</b><span>Continuidade recente — se as altas continuam aparecendo nas coletas mais recentes.</span></div>
+        <div><b>20%</b><span>Confirmação entre cassinos — quantas fontes monitoradas também registraram altas.</span></div>
+        <div><b>15%</b><span>Regularidade — favorece aumentos menos concentrados em um único pico.</span></div>
+        <div><b>10%</b><span>Recência — valoriza atividade observada há menos tempo.</span></div>
+      </div>
+    </section>
+    <section class="help-card">
+      <h2>Como interpretar</h2>
+      <ul>
+        <li><b>Maior pontuação:</b> mais critérios de consistência foram observados no período selecionado.</li>
+        <li><b>Reunindo dados:</b> ainda não existe histórico suficiente para avaliar o jogo.</li>
+        <li><b>Confiança da amostra:</b> mostra quanto histórico foi reunido para o cálculo; amostras pequenas reduzem a pontuação.</li>
+      </ul>
+    </section>
+    <section class="help-card warning-card">
+      <h2>Limites dos dados</h2>
+      <p>As fontes publicam valores acumulados diários. O radar compara a diferença entre coletas; isso não revela cada aposta ou prêmio individual, não comprova que um jogador recebeu aquele valor e não prevê resultados futuros.</p>
+      <p>Resultados de jogos de cassino são aleatórios. Uma pontuação alta não significa maior chance de ganhar.</p>
+    </section>
+    <a class="back-link" href="./">← Voltar ao ranking</a>
+  </main>
+  <footer>PGSoft Radar · 18+</footer>
+</body>
+</html>
