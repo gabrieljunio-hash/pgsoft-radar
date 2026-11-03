@@ -101,7 +101,35 @@ function render(){
  const latest=history.reduce((max,s)=>Math.max(max,new Date(s.collected_at).getTime()||0),0);
  $("updated").textContent=latest?"Dados coletados: "+when(new Date(latest).toISOString()):"Aguardando dados";
  $("ranking-summary").textContent=rows.length?rows.length+" jogos encontrados · pontuação de consistência":"Nenhum jogo encontrado neste período";
- $("wins").innerHTML=rows.length?rows.map((g,i)=>'<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo histórico</strong><small>Ainda não há comparações suficientes neste período.</small>':'<strong class="up-label">'+(g.score>=60?'Movimento frequente':g.score>=30?'Movimento moderado':'Movimento baixo')+'</strong><small>O acumulado aumentou em '+g.rises+' de '+g.intervals+' comparações.</small><small>Alta confirmada em '+g.confirmedSources+' de '+g.sourceCount+' fontes monitoradas.</small><small>'+g.recentLabel+'</small><small>'+g.regularLabel+'</small><small>'+(g.peak?'Horário de maior movimento: '+String(g.peak.hour).padStart(2,'0')+'h–'+String((g.peak.hour+1)%24).padStart(2,'0')+'h.':'Horário de pico ainda não identificado.')+'</small>'+(g.provider==='PG Soft'?'<small>Pagamentos individuais 50x+ encontrados: '+g.gameWins.length+(g.gameWins.length?' · maior: '+Math.max(...g.gameWins.map(e=>e.multiplier)).toLocaleString('pt-BR')+'x':' · nenhum registro nas fontes consultadas')+'</small>':'<small>Pagamentos individuais: sem fonte disponível para esta provedora.</small>'))+'</div></article>').join(""):'<div class="empty">Nenhum jogo encontrado. Tente ampliar o período ou limpar a busca.</div>';
+ const starRating=(value,thresholds=[.2,.4,.6,.8,1])=>{
+  const n=Number(value);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return thresholds.filter(t=>n>=t).length;
+ };
+ const starHtml=(rating,label)=>'<span class="metric-stars" role="img" aria-label="'+rating+' de 5 estrelas: '+escapeHtml(label)+'">'+
+  '<span class="stars-filled">'+'★'.repeat(rating)+'</span><span class="stars-empty">'+'☆'.repeat(5-rating)+'</span></span>';
+ const metric=(label,value,rating,explanation)=>'<div class="rank-metric"><span class="metric-copy"><b>'+escapeHtml(label)+'</b> '+escapeHtml(value)+'</span>'+starHtml(rating,explanation)+'</div>';
+ $("wins").innerHTML=rows.length?rows.map((g,i)=>{
+  const riseRatio=g.intervals?g.rises/g.intervals:0;
+  const sourceRatio=g.sourceCount?g.confirmedSources/g.sourceCount:0;
+  const continuityRating=starRating(g.continuity);
+  const regularityRating=starRating(g.regularity);
+  const peakRating=g.peak?starRating(Math.min(1,(g.peak.count||0)/5)):0;
+  const winRating=starRating(g.gameWins.length,[1,2,5,10,20]);
+  const increaseRating=starRating(riseRatio);
+  const sourceRating=starRating(sourceRatio);
+  const continuityText=g.recentLabel||"Sem histórico recente suficiente.";
+  const regularityText=g.regularLabel||"Regularidade ainda não calculada.";
+  const peakText=g.peak?"Horário de maior movimento: "+String(g.peak.hour).padStart(2,"0")+"h–"+String((g.peak.hour+1)%24).padStart(2,"0")+"h.":"Horário de pico ainda não identificado.";
+  const winsText=g.provider==="PG Soft"?"Pagamentos individuais 50x+ encontrados: "+g.gameWins.length+(g.gameWins.length?" · maior: "+Math.max(...g.gameWins.map(e=>Number(e.multiplier)||0)).toLocaleString("pt-BR")+"x":" · nenhum registro nas fontes consultadas"):"Pagamentos individuais: sem fonte disponível para esta provedora.";
+  return '<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo histórico</strong><small>Ainda não há comparações suficientes neste período.</small>':'<strong class="up-label">'+(g.score>=60?'Movimento frequente':g.score>=30?'Movimento moderado':'Movimento baixo')+'</strong>'+
+  metric("Aumentos observados",g.rises+" de "+g.intervals+" comparações",increaseRating,"proporção de comparações com aumento")+
+  metric("Fontes confirmando atividade",g.confirmedSources+" de "+g.sourceCount,sourceRating,"proporção de fontes que confirmaram aumento")+
+  metric("Continuidade",continuityText,continuityRating,"continuidade dos aumentos recentes")+
+  metric("Regularidade",regularityText,regularityRating,"distribuição dos aumentos ao longo das coletas")+
+  metric("Horário de pico",peakText,peakRating,"quantidade de observações no horário de pico")+
+  metric("Pagamentos individuais 50x+",winsText,winRating,"quantidade de pagamentos publicados e identificados"))+'</div></article>';
+ }).join(""):'<div class="empty">Nenhum jogo encontrado. Tente ampliar o período ou limpar a busca.</div>';
  renderTimeAnalysis();
 }
 
