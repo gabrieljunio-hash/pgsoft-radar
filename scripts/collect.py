@@ -3,6 +3,7 @@
 # The GitHub Actions schedule is configured for the minimum 5-minute interval.
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -173,15 +174,38 @@ def load_history(path):
     except (FileNotFoundError, json.JSONDecodeError):
         return {"schema_version": 2, "snapshots": []}
 
+def collect_one(source):
+    try:
+        games, images = fetch_source_details(source)
+        return source, games, images, None
+    except Exception as exc:
+        return source, None, None, exc
+
+
+def collect_batch(sources, parallel=False):
+    """Fetch a source batch concurrently when requested; preserve source order."""
+    if parallel and len(sources) > 1:
+        with ThreadPoolExecutor(max_workers=min(6, len(sources))) as executor:
+            return list(executor.map(collect_one, sources))
+    return [collect_one(source) for source in sources]
+
+
 def main():
     history_path = DATA / "history.json"
     history = load_history(history_path)
     snapshots = history.get("snapshots", [])
     successes, failures = [], []
-    print(f"Iniciando monitoramento de {len(SOURCES)} fontes/provedoras.")
-    for source in SOURCES:
-        try:
-            games, game_images = fetch_source_details(source)
+    primary = [source for source in SOURCES if source["provider"] == "PG Soft"]
+    secondary = [source for source in SOURCES if source["provider"] != "PG Soft"]
+    print(f"Iniciando monitoramento: {len(primary)} fontes PG Soft em paralelo; {len(secondary)} fontes secundárias depois.")
+
+    batches = [(primary, True), (secondary, False)]
+    for batch, parallel in batches:
+        for source, games, game_images, error in collect_batch(batch, parallel=parallel):
+            if error:
+                failures.append((source["name"], source["provider"], str(error)))
+                print(f"FALHA {source['name']} / {source['provider']}: {error}", file=sys.stderr)
+                continue
             now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
             snapshots.append({
                 "source": source["id"],
@@ -196,9 +220,6 @@ def main():
             })
             successes.append((source["name"], source["provider"], len(games)))
             print(f"OK {source['name']} / {source['provider']}: {len(games)} jogos")
-        except Exception as exc:
-            failures.append((source["name"], source["provider"], str(exc)))
-            print(f"FALHA {source['name']} / {source['provider']}: {exc}", file=sys.stderr)
 
     if not successes:
         raise RuntimeError("Nenhuma fonte produziu dados válidos; histórico preservado.")
