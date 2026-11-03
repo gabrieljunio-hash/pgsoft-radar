@@ -74,3 +74,18 @@
  margin:0;
 }
 .game-thumb.placeholder{padding-top:0}
+
+/* Analise horaria simplificada */
+.analysis-section{margin:18px 0;background:#141925;border:1px solid #292f40;border-radius:13px;padding:19px}
+.analysis-title h2{font-size:19px;margin:0 0 4px}
+.analysis-title p,.analysis-note{font-size:12px;color:#9da5b7;margin:0 0 14px}
+.time-analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.time-game{background:#101520;border:1px solid #303648;border-radius:10px;padding:12px;min-width:0}
+.time-game-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.time-game-head b{font-size:13px;overflow-wrap:anywhere}
+.time-game-head span{font-size:10px;color:#a99bf6;white-space:nowrap}
+.time-game-result{display:grid;gap:2px;margin:9px 0}
+.time-game-result strong{font-size:16px;color:#b9adff}
+.time-game-result small,.time-game-foot{font-size:11px;color:#9da5b7;line-height:1.4}
+.analysis-note{margin:12px 0 0}
+@media(max-width:650px){.analysis-section{padding:13px}.time-analysis-grid{grid-template-columns:1fr}}
