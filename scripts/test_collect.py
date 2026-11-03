@@ -8,6 +8,27 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(images.get("Fortune Tiger"), "https://example.com/games/fortune-tiger.webp")
         self.assertNotIn("Lucky Neko", images)
 
+
+    def test_image_uses_lazy_source_instead_of_placeholder(self):
+        html = '<img alt="Fortune Tiger" src="data:image/gif;base64,AAAA" data-src="/covers/fortune-tiger.webp">'
+        images = parse_game_images(html, ["Fortune Tiger"], "https://example.com/casino")
+        self.assertEqual(images.get("Fortune Tiger"), "https://example.com/covers/fortune-tiger.webp")
+
+    def test_image_srcset_prefers_largest_variant(self):
+        html = '<img alt="Lucky Neko" src="/small.webp" srcset="/small.webp 320w, /large.webp 960w">'
+        images = parse_game_images(html, ["Lucky Neko"], "https://example.com/casino")
+        self.assertEqual(images.get("Lucky Neko"), "https://example.com/large.webp")
+
+    def test_image_matching_ignores_placeholder_and_supports_accents(self):
+        html = '<img alt="Banner" src="/placeholder.webp"><img data-game-name="Fortuné Tíger" data-src="//cdn.example.com/tiger.webp">'
+        images = parse_game_images(html, ["Fortune Tiger"], "https://example.com/casino")
+        self.assertEqual(images.get("Fortune Tiger"), "https://cdn.example.com/tiger.webp")
+
+    def test_image_rejects_data_and_blob_urls(self):
+        html = '<img alt="Fortune Tiger" src="data:image/png;base64,AAAA"><img alt="Lucky Neko" src="blob:https://example.com/abc">'
+        images = parse_game_images(html, ["Fortune Tiger", "Lucky Neko"], "https://example.com/casino")
+        self.assertEqual(images, {})
+
     def test_standard_layout(self):
         html = "<div>Fortune Tiger Jogar Pagou hoje R$ 244.441</div><div>Lucky Neko Pagou hoje R$ 12.345,67</div>"
         games = parse_games(html, "before")
