@@ -3,6 +3,12 @@ from datetime import datetime, timezone, timedelta
 from scripts.collect_wins import parse_rows, norm
 
 class WinFeedTests(unittest.TestCase):
+    def test_source_status_is_not_ok_when_page_has_no_pgsoft_rows(self):
+        from scripts.collect_wins import classify_source
+        self.assertEqual(classify_source({"pgsoft_rows": 0, "eligible_rows": 0}), "no_pgsoft_data")
+        self.assertEqual(classify_source({"pgsoft_rows": 2, "eligible_rows": 0}), "no_50x_events")
+        self.assertEqual(classify_source({"pgsoft_rows": 2, "eligible_rows": 1}), "ok")
+
     def test_only_pgsoft_games_and_50x_or_more(self):
         html = """
         <table><tr><th>Jogo</th><th>Jogador</th><th>Data e hora</th><th>Aposta</th><th>Multiplicador</th><th>Pagamento</th></tr>
