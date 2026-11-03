@@ -7,6 +7,7 @@ on:
       - ".github/workflows/collect.yml"
       - "scripts/collect.py"
       - "scripts/test_collect.py"
+      - "scripts/check_images.py"
       - "scripts/collect_wins.py"
       - "scripts/test_wins.py"
   schedule:
@@ -47,6 +48,8 @@ jobs:
         run: node --check app.js
       - name: Coletar acumulados publicados
         run: python scripts/collect.py
+      - name: Verificar URLs reais das capas
+        run: python scripts/check_images.py
       - name: Coletar pagamentos individuais 50x+
         run: python scripts/collect_wins.py
       - name: Salvar histórico
