@@ -139,6 +139,9 @@ def classify_source(diagnostics):
         return "no_50x_events"
     return "ok"
 
+def should_fail_collection(checked):
+    return bool(checked) and all(x.get("status") == "error" for x in checked)
+
 def main():
     DATA.mkdir(exist_ok=True)
     history = json.loads(HISTORY.read_text(encoding="utf-8"))
