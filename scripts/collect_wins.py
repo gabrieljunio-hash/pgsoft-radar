@@ -85,54 +85,83 @@ class TableParser(HTMLParser):
             self.row = None
             self.cell = None
 
+def header_map(cells):
+    aliases = {
+        "game": ("jogo", "game", "slot"),
+        "time": ("data e hora", "data/hora", "horario", "hora", "date", "time"),
+        "bet": ("aposta", "valor apostado", "bet"),
+        "multiplier": ("multiplicador", "multiplier", "x"),
+        "payout": ("pagamento", "premio", "prêmio", "ganho", "payout", "win"),
+    }
+    normalized = [norm(x) for x in cells]
+    result = {}
+    for field, names in aliases.items():
+        for i, value in enumerate(normalized):
+            if any(norm(name) == value or norm(name) in value for name in names):
+                result[field] = i
+                break
+    return result
+
 def parse_rows(raw, known_games, now=None, source=None, diagnostics=None):
     source = source or SOURCES[0]
     parser = TableParser()
     parser.feed(raw)
     records = []
     if diagnostics is not None:
-        diagnostics.update({"table_rows": len(parser.rows), "pgsoft_rows": 0, "eligible_rows": 0})
+        diagnostics.update({"table_rows": len(parser.rows), "pgsoft_rows": 0, "eligible_rows": 0, "candidate_rows": 0})
+    required = {"game", "time", "bet", "multiplier", "payout"}
+    aliases = sorted(known_games, key=len, reverse=True)
     for row in parser.rows:
         cells = [c["text"] for c in row]
-        joined = " ".join(cells).lower()
-        if len(cells) < 6 or "multiplicador" in joined or "pagamento" in joined:
+        if not cells:
             continue
-        # Feed columns: game, masked player, date/time, bet, multiplier, payout.
-        raw_game = cells[0]
-        key = norm(raw_game)
-        matched = next((k for k in sorted(known_games, key=len, reverse=True) if k and (k in key or key in k)), None)
+        headers = header_map(cells)
+        if required.issubset(headers):
+            continue
+        if not required.issubset(headers):
+            continue
+        if diagnostics is not None:
+            diagnostics["candidate_rows"] += 1
+        matched = None
+        raw_game = ""
+        for candidate in [cells[headers["game"]]] + [cells[i] for i in range(len(cells)) if i != headers["game"]]:
+            key = norm(candidate)
+            matched = next((k for k in aliases if k and (k == key or k in key or key in k)), None)
+            if matched:
+                raw_game = candidate
+                break
         if not matched:
             continue
         if diagnostics is not None:
             diagnostics["pgsoft_rows"] += 1
         game = known_games[matched] if isinstance(known_games, dict) else raw_game
-        bet_match = AMOUNT_RE.search(cells[3])
-        payout_match = AMOUNT_RE.search(cells[5])
-        mult = multiplier(cells[4])
-        if not bet_match or not payout_match or not mult:
-            continue
-        bet, payout = amount(bet_match.group(1)), amount(payout_match.group(1))
-        ratio = payout / bet if bet else 0
-        if ratio < 50 and mult < 50:
-            continue
-        occurred = parse_time(cells[2], now)
-        if not occurred:
+        try:
+            bet_match = AMOUNT_RE.search(cells[headers["bet"]])
+            payout_match = AMOUNT_RE.search(cells[headers["payout"]])
+            mult = multiplier(cells[headers["multiplier"]])
+            if not bet_match or not payout_match or mult is None:
+                continue
+            bet, payout = amount(bet_match.group(1)), amount(payout_match.group(1))
+            ratio = payout / bet if bet else 0
+            if ratio < 50 and mult < 50:
+                continue
+            occurred = parse_time(cells[headers["time"]], now)
+            if not occurred:
+                continue
+        except (ValueError, IndexError):
             continue
         image = next((urljoin(source["url"], c["image"]) for c in row if c["image"]), "")
-        event = {
-            "source": source["id"], "source_name": source["name"],
-            "game": game, "bet": bet, "payout": payout,
-            "multiplier": round(max(mult, ratio), 2),
-            "occurred_at": occurred, "image": image,
-        }
-        raw_id = "|".join([event["source"], key, occurred, str(bet), str(payout)])
+        event = {"source": source["id"], "source_name": source["name"], "game": game, "bet": bet, "payout": payout,
+                 "multiplier": round(max(mult, ratio), 2), "occurred_at": occurred, "image": image}
+        raw_id = "|".join([event["source"], norm(raw_game), occurred, str(bet), str(payout)])
         event["id"] = hashlib.sha256(raw_id.encode()).hexdigest()[:20]
         records.append(event)
         if diagnostics is not None:
             diagnostics["eligible_rows"] += 1
     return records
-
 def classify_source(diagnostics):
+    if diagnostics.get("redirected_home", False):
+        return "redirected_no_feed"
     if diagnostics.get("pgsoft_rows", 0) <= 0:
         return "no_pgsoft_data"
     if diagnostics.get("eligible_rows", 0) <= 0:
@@ -159,11 +188,13 @@ def main():
                 diagnostics = {}
                 rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
                 found.extend(rows)
+                diagnostics["redirected_home"] = page.url.rstrip("/") == source["url"].split("/user/")[0].rstrip("/")
                 status = classify_source(diagnostics)
                 messages = {
                     "ok": "Feed PG Soft identificado e pagamentos >=50x processados.",
                     "no_50x_events": "Jogos PG Soft identificados, mas nenhum pagamento >=50x apareceu nesta coleta.",
-                    "no_pgsoft_data": "Página acessível, mas sem linhas públicas de jogos PG Soft reconhecidas.",
+                    "no_pgsoft_data": "Feed consultado, mas nenhuma linha de jogo PG Soft foi reconhecida.",
+                    "redirected_no_feed": "A rota de pagamentos redirecionou para a página inicial; nenhum feed público foi encontrado.",
                 }
                 checked.append({
                     "id": source["id"], "name": source["name"], "status": status,
