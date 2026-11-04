@@ -10,6 +10,8 @@ on:
       - "scripts/check_images.py"
       - "scripts/collect_wins.py"
       - "scripts/test_wins.py"
+      - "ranking-core.js"
+      - "scripts/test_ranking.js"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
