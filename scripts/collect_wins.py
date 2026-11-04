@@ -191,9 +191,13 @@ def main():
                 page.wait_for_timeout(4000)
                 raw = page.content()
                 diagnostics = {}
-                rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
-                found.extend(rows)
                 diagnostics["redirected_home"] = page.url.rstrip("/") == source["url"].split("/user/")[0].rstrip("/")
+                if diagnostics["redirected_home"]:
+                    diagnostics.update({"table_rows": 0, "pgsoft_rows": 0, "eligible_rows": 0, "candidate_rows": 0})
+                    rows = []
+                else:
+                    rows = parse_rows(raw, known_games, source=source, diagnostics=diagnostics)
+                    found.extend(rows)
                 status = classify_source(diagnostics)
                 messages = {
                     "ok": "Feed PG Soft identificado e pagamentos >=50x processados.",
