@@ -3,7 +3,7 @@ function renderAdvancedAnalysis(history,winEvents){
  const root=document.getElementById("advanced-analysis");if(!root)return;
  const stats=new Map(),winCount=(winEvents||[]).length;
  const gameSeries=new Map(),sourceSnapshots=new Map();
- const normalize=value=>String(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+ const normalize=value=>String(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  for(const s of history||[]){
   const t=Date.parse(s.collected_at);if(!Number.isFinite(t))continue;
   const provider=s.provider||"PG Soft",source=(s.source||"")+"|"+provider;
