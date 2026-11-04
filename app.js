@@ -63,9 +63,11 @@ function render(){
  }
  const rows=[];
  for(const g of perGame.values()){
+  const sourceEntries=[...g.bySource.entries()].map(([id,points])=>({id,points}));
+  const sourceGroups=window.RadarCore?window.RadarCore.groupMirroredSources(sourceEntries):sourceEntries.map(x=>({members:[x.id],representative:x}));
   const sourceStats=[];
-  for(const points of g.bySource.values()){
-   points.sort((a,b)=>a.t-b.t);
+  for(const group of sourceGroups){
+   const points=group.representative.points.sort((a,b)=>a.t-b.t);
    if(points.length<2)continue;
    const deltas=[];
    let lastRise=0;
@@ -74,16 +76,16 @@ function render(){
     deltas.push(d);
     if(d>0)lastRise=points[i].t;
    }
-   sourceStats.push({deltas,positive:deltas.filter(d=>d>0),lastRise});
+   sourceStats.push({deltas,positive:deltas.filter(d=>d>0),lastRise,members:group.members});
   }
-  const latestPoints=[...g.bySource.values()].map(p=>[...p].sort((a,b)=>a.t-b.t).at(-1)).filter(Boolean);
-  const metrics=calculateScore(sourceStats,now,windowMs,g.bySource.size);
+  const independentSourceCount=sourceGroups.length;
+  const metrics=calculateScore(sourceStats,now,windowMs,independentSourceCount);
   const recentLabel=metrics.continuity>=.67?"As altas continuaram nas coletas recentes.":metrics.continuity>=.34?"Houve novas altas, mas sem constância.":"Poucas altas nas coletas mais recentes.";
   const regularLabel=metrics.regularity>=.65?"Aumentos distribuídos ao longo das coletas.":"Aumentos concentrados em alguns momentos.";
   const confirmedSources=sourceStats.filter(s=>s.deltas.some(d=>d>0)).length;
   const hourly=Array.from({length:24},()=>({count:0,rises:0,total:0}));
-  for(const points of g.bySource.values()){
-   points.sort((a,b)=>a.t-b.t);
+  for(const group of sourceGroups){
+   const points=group.representative.points.sort((a,b)=>a.t-b.t);
    for(let i=1;i<points.length;i++){
     if(points[i].t<cutoff)continue;
     const hour=(new Date(points[i].t).getUTCHours()+21)%24;
@@ -96,7 +98,7 @@ function render(){
    .filter(h=>h.count>=2&&h.rises>0)
    .sort((a,b)=>b.rises-a.rises||b.rate-a.rate||b.total-a.total)[0]||null;
   const gameWins=g.provider==="PG Soft"?winEvents.filter(e=>key(e.game)===key(g.game)&&Date.parse(e.occurred_at)>=cutoff):[];
-  rows.push({...g,...metrics,waiting:metrics.intervals===0,sourceCount:g.bySource.size,confirmedSources,peak,gameWins});
+  rows.push({...g,...metrics,recentLabel,regularLabel,waiting:metrics.intervals===0,sourceCount:g.bySource.size,independentSourceCount,mirrorSourceCount:g.bySource.size-independentSourceCount,confirmedSources,peak,gameWins});
  }
  rows.sort((a,b)=>(a.waiting?1:0)-(b.waiting?1:0)||b.score-a.score||b.rises-a.rises||b.lastRise-a.lastRise);
  const latest=history.reduce((max,s)=>Math.max(max,new Date(s.collected_at).getTime()||0),0);
@@ -112,7 +114,7 @@ function render(){
  const metric=(label,value,rating,explanation)=>'<div class="rank-metric"><span class="metric-copy"><b>'+escapeHtml(label)+'</b> '+escapeHtml(value)+'</span>'+starHtml(rating,explanation)+'</div>';
  $("wins").innerHTML=rows.length?rows.map((g,i)=>{
   const riseRatio=g.intervals?g.rises/g.intervals:0;
-  const sourceRatio=g.sourceCount?g.confirmedSources/g.sourceCount:0;
+  const sourceRatio=g.independentSourceCount?g.confirmedSources/g.independentSourceCount:0;
   const continuityRating=starRating(g.continuity);
   const regularityRating=starRating(g.regularity);
   const peakRating=g.peak?starRating(Math.min(1,(g.peak.count||0)/5)):0;
@@ -125,7 +127,7 @@ function render(){
   const winsText=g.provider==="PG Soft"?"Pagamentos individuais 50x+ encontrados: "+g.gameWins.length+(g.gameWins.length?" · maior: "+Math.max(...g.gameWins.map(e=>Number(e.multiplier)||0)).toLocaleString("pt-BR")+"x":" · nenhum registro nas fontes consultadas"):"Pagamentos individuais: sem fonte disponível para esta provedora.";
   return '<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo histórico</strong><small>Ainda não há comparações suficientes neste período.</small>':'<strong class="up-label">'+(g.score>=60?'Movimento frequente':g.score>=30?'Movimento moderado':'Movimento baixo')+'</strong>'+
   metric("Aumentos observados",g.rises+" de "+g.intervals+" comparações",increaseRating,"proporção de comparações com aumento")+
-  metric("Fontes confirmando atividade",g.confirmedSources+" de "+g.sourceCount,sourceRating,"proporção de fontes que confirmaram aumento")+
+  metric("Confirmação independente",g.confirmedSources+" de "+g.independentSourceCount+" grupos · "+g.sourceCount+" fontes consultadas",sourceRating,"grupos estimados por trajetórias; fontes com dados espelhados não contam como confirmações separadas")+
   metric("Continuidade",continuityText,continuityRating,"continuidade dos aumentos recentes")+
   metric("Regularidade",regularityText,regularityRating,"distribuição dos aumentos ao longo das coletas")+
   metric("Horário de pico",peakText,peakRating,"estimativa baseada na faixa horária com mais aumentos históricos; não é previsão de prêmio")+
@@ -167,8 +169,10 @@ function renderTimeAnalysis(){
  for(const g of games.values()){
   let rises=0,intervals=0;
   const recentStats=[];
-  for(const points of g.sources.values()){
-   points.sort((a,b)=>a.t-b.t);const recentDeltas=[];
+  const sourceEntries=[...g.sources.entries()].map(([id,points])=>({id,points}));
+  const sourceGroups=window.RadarCore?window.RadarCore.groupMirroredSources(sourceEntries):sourceEntries.map(x=>({members:[x.id],representative:x}));
+  for(const group of sourceGroups){
+   const points=group.representative.points.sort((a,b)=>a.t-b.t);const recentDeltas=[];
    for(let i=1;i<points.length;i++){
     const a=points[i-1],b=points[i],delta=b.value-a.value;
     const localHour=(new Date(b.t).getUTCHours()+21)%24;
@@ -177,7 +181,7 @@ function renderTimeAnalysis(){
    }
    if(recentDeltas.length)recentStats.push({deltas:recentDeltas,positive:recentDeltas.filter(x=>x>0),lastRise:0});
   }
-  const score=calculateScore(recentStats,Date.now(),24*3600000,g.sources.size).score;
+  const score=calculateScore(recentStats,Date.now(),24*3600000,sourceGroups.length).score;
   ranked.push({...g,rises,intervals,score});
  }
  ranked.sort((a,b)=>b.score-a.score||b.rises-a.rises);
