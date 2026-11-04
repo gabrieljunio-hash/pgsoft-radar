@@ -111,14 +111,19 @@ def parse_rows(raw, known_games, now=None, source=None, diagnostics=None):
         diagnostics.update({"table_rows": len(parser.rows), "pgsoft_rows": 0, "eligible_rows": 0, "candidate_rows": 0})
     required = {"game", "time", "bet", "multiplier", "payout"}
     aliases = sorted(known_games, key=len, reverse=True)
+    active_headers = None
     for row in parser.rows:
         cells = [c["text"] for c in row]
         if not cells:
             continue
-        headers = header_map(cells)
-        if required.issubset(headers):
+        possible_headers = header_map(cells)
+        if required.issubset(possible_headers):
+            active_headers = possible_headers
             continue
-        if not required.issubset(headers):
+        if active_headers is None:
+            continue
+        headers = active_headers
+        if max(headers.values()) >= len(cells):
             continue
         if diagnostics is not None:
             diagnostics["candidate_rows"] += 1
