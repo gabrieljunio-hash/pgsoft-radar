@@ -140,7 +140,7 @@ function renderWinSources(data){
  const el=$("win-sources");if(!el)return;
  const sources=data&&Array.isArray(data.sources)?data.sources:[];
  if(!sources.length){el.innerHTML='<div class="empty">Nenhuma fonte de pagamentos individuais configurada.</div>';return;}
- const labels={ok:"Feed identificado",no_50x_events:"Sem evento 50x+ nesta coleta",no_pgsoft_data:"Sem dados PG Soft públicos",error:"Falha de acesso"};
+ const labels={ok:"Feed identificado",no_50x_events:"Sem evento 50x+ nesta coleta",no_pgsoft_data:"Sem dados PG Soft públicos",redirected_no_feed:"Rota pública indisponível",error:"Falha de acesso"};
  el.innerHTML=sources.map(s=>{
   const status=s.status||"error";
   const details=[
