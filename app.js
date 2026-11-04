@@ -81,7 +81,7 @@ function render(){
   const independentSourceCount=sourceGroups.length;
   const metrics=calculateScore(sourceStats,now,windowMs,independentSourceCount);
   const recentLabel=metrics.continuity>=.67?"As altas continuaram nas coletas recentes.":metrics.continuity>=.34?"Houve novas altas, mas sem constância.":"Poucas altas nas coletas mais recentes.";
-  const regularLabel=metrics.regularity>=.65?"Aumentos distribuídos ao longo das coletas.":"Aumentos concentrados em alguns momentos.";
+  const regularLabel=metrics.regularity===0?"Ainda não há aumentos suficientes para medir a regularidade.":metrics.regularity>=.65?"Aumentos distribuídos ao longo das coletas.":"Aumentos concentrados em alguns momentos.";
   const confirmedSources=sourceStats.filter(s=>s.deltas.some(d=>d>0)).length;
   const hourly=Array.from({length:24},()=>({count:0,rises:0,total:0}));
   for(const group of sourceGroups){
@@ -127,7 +127,7 @@ function render(){
   const winsText=g.provider==="PG Soft"?"Pagamentos individuais 50x+ encontrados: "+g.gameWins.length+(g.gameWins.length?" · maior: "+Math.max(...g.gameWins.map(e=>Number(e.multiplier)||0)).toLocaleString("pt-BR")+"x":" · nenhum registro nas fontes consultadas"):"Pagamentos individuais: sem fonte disponível para esta provedora.";
   return '<article class="game-card"><span class="rank">#'+(i+1)+'</span><div class="game-thumb-wrap">'+(g.images.length?'<img class="game-thumb" src="'+escapeHtml(g.images[0])+'" data-candidates="'+escapeHtml(JSON.stringify(g.images))+'" data-next-candidate="1" alt="'+escapeHtml(g.game)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="nextGameImage(this)"><div class="game-thumb game-thumb-fallback placeholder" hidden>'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>':'<div class="game-thumb placeholder">'+escapeHtml(g.game.slice(0,2).toUpperCase())+'</div>')+'</div><div class="game-info"><h3>'+escapeHtml(g.game)+'</h3><span class="provider-tag">'+escapeHtml(g.provider)+'</span>'+(g.waiting?'<strong class="waiting-label">Reunindo histórico</strong><small>Ainda não há comparações suficientes neste período.</small>':'<strong class="up-label">'+(g.score>=60?'Movimento frequente':g.score>=30?'Movimento moderado':'Movimento baixo')+'</strong>'+
   metric("Aumentos observados",g.rises+" de "+g.intervals+" comparações",increaseRating,"proporção de comparações com aumento")+
-  metric("Confirmação independente",g.confirmedSources+" de "+g.independentSourceCount+" grupos · "+g.sourceCount+" fontes consultadas",sourceRating,"grupos estimados por trajetórias; fontes com dados espelhados não contam como confirmações separadas")+
+  metric("Confirmação independente",g.confirmedSources+"/"+g.independentSourceCount+" grupos · "+g.sourceCount+" fontes · "+g.mirrorSourceCount+" possíveis espelhos",sourceRating,"grupos estimados por trajetórias; fontes com dados espelhados não contam como confirmações separadas")+
   metric("Continuidade",continuityText,continuityRating,"continuidade dos aumentos recentes")+
   metric("Regularidade",regularityText,regularityRating,"distribuição dos aumentos ao longo das coletas")+
   metric("Horário de pico",peakText,peakRating,"estimativa baseada na faixa horária com mais aumentos históricos; não é previsão de prêmio")+
