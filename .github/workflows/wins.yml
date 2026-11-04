@@ -1,7 +1,14 @@
 name: Monitorar pagamentos individuais PG Soft
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/wins.yml"
+      - "scripts/collect_wins.py"
+      - "scripts/test_wins.py"
   schedule:
-    - cron: "7,37 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,17 +25,15 @@ jobs:
       - name: Sincronizar com main
         run: git pull --rebase origin main
       - name: Preparar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright==1.55.0
       - name: Cache Chromium
         uses: actions/cache@v4
         id: chromium-cache
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-v1
-      - name: Instalar Playwright
-        run: pip install playwright==1.55.0
       - name: Instalar Chromium
         if: steps.chromium-cache.outputs.cache-hit != 'true'
         run: python -m playwright install chromium
