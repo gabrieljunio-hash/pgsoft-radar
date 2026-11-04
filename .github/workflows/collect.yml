@@ -45,7 +45,10 @@ jobs:
       - name: Testar parsers
         run: python -m unittest scripts.test_collect scripts.test_wins -v
       - name: Validar JavaScript do painel
-        run: node --check app.js
+        run: |
+          node --check ranking-core.js
+          node --check app.js
+          node scripts/test_ranking.js
       - name: Coletar acumulados publicados
         run: python scripts/collect.py
       - name: Salvar histórico
