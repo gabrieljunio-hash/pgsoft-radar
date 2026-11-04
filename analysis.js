@@ -1,14 +1,40 @@
 function renderAdvancedAnalysis(history,winEvents){
  window._radarRows=[];
  const root=document.getElementById("advanced-analysis");if(!root)return;
- const groups=new Map(),stats=new Map(),winCount=(winEvents||[]).length;
+ const stats=new Map(),winCount=(winEvents||[]).length;
+ const gameSeries=new Map(),sourceSnapshots=new Map();
+ const normalize=value=>String(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
  for(const s of history||[]){
   const t=Date.parse(s.collected_at);if(!Number.isFinite(t))continue;
-  const id=(s.source||"")+"|"+(s.provider||"PG Soft");
-  if(!groups.has(id))groups.set(id,[]);
-  groups.get(id).push({t,games:s.games||{}});
+  const provider=s.provider||"PG Soft",source=(s.source||"")+"|"+provider;
+  if(!sourceSnapshots.has(source))sourceSnapshots.set(source,[]);
+  sourceSnapshots.get(source).push({t,games:s.games||{}});
+  for(const [name,value] of Object.entries(s.games||{})){
+   const id=normalize(name);
+   if(!gameSeries.has(id))gameSeries.set(id,{name,provider,sources:new Map()});
+   const game=gameSeries.get(id);
+   if(!game.sources.has(source))game.sources.set(source,[]);
+   game.sources.get(source).push({t,value:Number(value)});
+  }
  }
- for(const points of groups.values()){
+ for(const [id,game] of gameSeries){
+  const entries=[...game.sources.entries()].map(([source,points])=>({id:source,points}));
+  const independent=window.RadarCore?window.RadarCore.groupMirroredSources(entries):entries.map(x=>({members:[x.id],representative:x}));
+  const stat={name:game.name,provider:game.provider,changes:[],gaps:[],last:0,sourceCount:entries.length,independentSourceCount:independent.length};
+  for(const group of independent){
+   const points=group.representative.points.sort((a,b)=>a.t-b.t);
+   let lastRise=0;
+   for(let i=1;i<points.length;i++){
+    const a=points[i-1],b=points[i];
+    if(!Number.isFinite(a.value)||!Number.isFinite(b.value)||!a.value)continue;
+    const pct=(b.value-a.value)/Math.abs(a.value)*100;
+    stat.changes.push(pct);
+    if(pct>0){if(lastRise)stat.gaps.push((b.t-lastRise)/3600000);lastRise=b.t;stat.last=b.t;}
+   }
+  }
+  stats.set(id,stat);
+ }
+ for(const points of sourceSnapshots.values()){
   points.sort((a,b)=>a.t-b.t);
   for(let i=1;i<points.length;i++){
    const a=points[i-1],b=points[i];if(b.t<=a.t)continue;
@@ -16,14 +42,9 @@ function renderAdvancedAnalysis(history,winEvents){
    for(const name of new Set([...Object.keys(a.games),...Object.keys(b.games)])){
     const old=Number(a.games[name]),cur=Number(b.games[name]);
     if(!Number.isFinite(old)||!Number.isFinite(cur)||!old)continue;
-    const id=String(name).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-    const pct=(cur-old)/Math.abs(old)*100;
-    if(!stats.has(id))stats.set(id,{name,changes:[],gaps:[],last:0});
-    const g=stats.get(id);g.changes.push(pct);
-    if(pct>0){if(g.last)g.gaps.push((b.t-g.last)/3600000);g.last=b.t;}
+    const id=normalize(name),pct=(cur-old)/Math.abs(old)*100;
     row.push({id,pct});
    }
-   if(!window._radarRows)window._radarRows=[];
    window._radarRows.push(row);
   }
  }
