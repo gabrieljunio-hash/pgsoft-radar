@@ -9,6 +9,24 @@ class WinFeedTests(unittest.TestCase):
         self.assertEqual(classify_source({"pgsoft_rows": 2, "eligible_rows": 0}), "no_50x_events")
         self.assertEqual(classify_source({"pgsoft_rows": 2, "eligible_rows": 1}), "ok")
 
+    def test_redirected_home_is_not_reported_as_an_empty_public_feed(self):
+        from scripts.collect_wins import classify_source
+        self.assertEqual(classify_source({"redirected_home": True, "pgsoft_rows": 0}), "redirected_no_feed")
+
+    def test_reordered_columns_are_recognized(self):
+        html = """
+        <table>
+        <tr><th>Jogador</th><th>Multiplicador</th><th>Pagamento</th><th>Jogo</th><th>Data e hora</th><th>Aposta</th></tr>
+        <tr><td>123***456</td><td>75x</td><td>R$ 150,00</td><td>Fortune Tiger</td><td>02/11, 08:56</td><td>R$ 2,00</td></tr>
+        </table>"""
+        known = {norm("Fortune Tiger"): "Fortune Tiger"}
+        now = datetime(2026, 11, 2, 9, 0, tzinfo=timezone(timedelta(hours=-3)))
+        diagnostics = {}
+        rows = parse_rows(html, known, now, diagnostics=diagnostics)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["multiplier"], 75)
+        self.assertEqual(diagnostics["pgsoft_rows"], 1)
+
     def test_accessible_sources_without_pgsoft_data_do_not_fail_collection(self):
         from scripts.collect_wins import should_fail_collection
         self.assertFalse(should_fail_collection([
