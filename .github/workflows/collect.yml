@@ -10,6 +10,7 @@ on:
       - "scripts/check_images.py"
       - "scripts/collect_wins.py"
       - "scripts/test_wins.py"
+      - "analysis.js"
       - "ranking-core.js"
       - "scripts/test_ranking.js"
   schedule:
@@ -50,6 +51,7 @@ jobs:
         run: |
           node --check ranking-core.js
           node --check app.js
+          node --check analysis.js
           node scripts/test_ranking.js
       - name: Coletar acumulados publicados
         run: python scripts/collect.py
